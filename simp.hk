@@ -1,0 +1,3 @@
+x <~ normal(1,2)
+y <~ normal(x,6)
+return (x,y)
