@@ -1,0 +1,7 @@
+def foo(x int):
+  return 1
+
+def bar(y int):
+  return 2
+
+1
