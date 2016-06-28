@@ -1,0 +1,9 @@
+# A chord is a key center
+def chord (key int, octive_seed real):
+  return (key * (octive_seed * 2))
+
+def interval (note int, interval int):
+  return (2 )
+
+seed <~ normal(1,5)
+return chord(440,seed)
