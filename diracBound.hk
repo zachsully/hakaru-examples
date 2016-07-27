@@ -1,0 +1,4 @@
+def foo(x int, y int):
+  x
+
+foo(42,09,0)

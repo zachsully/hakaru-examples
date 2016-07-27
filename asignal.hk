@@ -1,0 +1,5 @@
+def noise(width prob):
+  normal(0,width)
+
+ambient <~ noise(1)
+return (440,ambient)

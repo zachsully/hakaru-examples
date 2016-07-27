@@ -1,0 +1,5 @@
+w <~ dirac 1.0
+x <~ dirac 0.5
+y <~ dirac 0.2
+z <~ dirac 2.5
+return (w+x+y+z)

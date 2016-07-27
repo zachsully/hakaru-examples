@@ -1,0 +1,4 @@
+x <~ uniform(0,1)
+y <~ uniform(1,2)
+z <~ uniform(40,40*y)
+return (x+y+z)

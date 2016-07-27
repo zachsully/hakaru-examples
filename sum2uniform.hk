@@ -1,0 +1,3 @@
+x <~ uniform(1,5)
+y <~ uniform(6,10)
+return (x + y)
