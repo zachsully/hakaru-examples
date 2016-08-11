@@ -1,0 +1,5 @@
+def foo():
+  [4,2,1,5]
+
+summate i from 0 to size(foo()):
+  foo()[i]

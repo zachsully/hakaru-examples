@@ -1,0 +1,67 @@
+fn topic_prior array(prob): 
+ fn word_prior array(prob): 
+  fn z array(nat): 
+   fn w array(nat): 
+    fn doc array(nat): 
+     fn docUpdate nat: 
+      array zNew of size(topic_prior): 
+       product k from 0 to size(topic_prior): 
+        product i from 0 to size(word_prior): 
+         product j from 0 to summate j from 0 to size(w): 
+                              (match (doc[j] == docUpdate): 
+                                true: 
+                                 (match ((k == zNew) && (i == w[j])): 
+                                   true: 1
+                                   false: 0)
+                                false: 0): 
+          (nat2prob(summate j from 0 to size(w): 
+                     (match (doc[j] == docUpdate): 
+                       true: 0
+                       false: 
+                        (match ((k == z[doc[j]]) && (i == w[j])): 
+                          true: 1
+                          false: 0)))
+            + 
+           nat2prob(j)
+            + 
+           word_prior[i])
+        * 
+       (nat2prob(summate j from 0 to size(z): 
+                  (match (j == docUpdate): 
+                    true: 0
+                    false: 
+                     (match (zNew == z[j]): 
+                       true: 1
+                       false: 0)))
+         + 
+        topic_prior[zNew])
+        / 
+       (nat2prob(summate j from 0 to size(z): 
+                  (match (j == docUpdate): 
+                    true: 0
+                    false: 
+                     (match (z[j] < 0): 
+                       true: 0
+                       false: 1)))
+         + 
+        summate j from 0 to size(topic_prior): topic_prior[j])
+        / 
+       product k from 0 to size(topic_prior): 
+        product j from 0 to summate j from 0 to size(w): 
+                             (match (doc[j] == docUpdate): 
+                               true: 
+                                (match ((0 < w[j]) && (k == zNew)): 
+                                  true: 1
+                                  false: 0)
+                               false: 0): 
+         (nat2prob(summate j from 0 to size(w): 
+                    (match (doc[j] == docUpdate): 
+                      true: 0
+                      false: 
+                       (match ((0 < w[j]) && (k == z[doc[j]])): 
+                         true: 1
+                         false: 0)))
+           + 
+          nat2prob(j)
+           + 
+          summate j from 0 to size(word_prior): word_prior[j])

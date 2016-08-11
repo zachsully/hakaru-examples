@@ -1,0 +1,3 @@
+fn x real:
+  fn y real:
+    x + y
