@@ -1,0 +1,10 @@
+array x0 of 4: 
+ (match (x0 == 0): 
+   true: 4
+   false: 
+    (match (x0 == 1): 
+      true: 2
+      false: 
+       (match (x0 == 2): 
+         true: 1
+         false: 0)))
