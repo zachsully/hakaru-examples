@@ -1,0 +1,2 @@
+fn x nat:
+  normal(x + 0.1, 0.3)

@@ -1,0 +1,3 @@
+match (0 == 2):
+  true: 0
+  false: 42

@@ -1,0 +1,7 @@
+def arr():
+  array i of 42: 1
+
+def add(x nat, y nat):
+  x + y
+
+reduce(add, 0, arr())
