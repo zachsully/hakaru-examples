@@ -4,8 +4,8 @@ GCC_DIR=build/gcc
 CLANG=clang
 CLANG_DIR=build/clang
 
-ARM_GCC=arm-none-eabi-gcc
-ARM_GCC_DIR=build/arm-none-eabi-gcc
+# ARM_GCC=arm-none-eabi-gcc
+# ARM_GCC_DIR=build/arm-none-eabi-gcc
 
 C_FLAGS=-std=c99 -pedantic -lm
 
