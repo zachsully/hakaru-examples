@@ -1,9 +1,0 @@
-match (10 == 0):
-  true: 4
-  false:
-   (match (10 == 1):
-     true: 2
-     false:
-      (match (10 == 2):
-        true: 1
-        false: 42))
