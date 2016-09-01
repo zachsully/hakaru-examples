@@ -29,7 +29,8 @@ HK_TO_C = true.c \
           arrayLit.c \
           arraySize.c \
           arrayIndex.c \
-          arrayCoercion.c
+          arrayCoercion.c \
+          boolEq.c
 
 
 C_TO_EXE = true.bin \
@@ -47,7 +48,8 @@ C_TO_EXE = true.bin \
            arrayLit.bin \
            arraySize.bin \
            arrayIndex.bin \
-           arrayCoercion.bin
+           arrayCoercion.bin \
+           boolEq.bin
 
 
 testAll : testCoverage $(C_TO_EXE)
