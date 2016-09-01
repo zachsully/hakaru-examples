@@ -4,9 +4,6 @@ GCC_DIR=build/gcc
 CLANG=clang
 CLANG_DIR=build/clang
 
-# ARM_GCC=arm-none-eabi-gcc
-# ARM_GCC_DIR=build/arm-none-eabi-gcc
-
 C_FLAGS=-std=c99 -pedantic -lm
 
 HKC=~/hakaru/dist/build/hkc/hkc
@@ -32,6 +29,7 @@ HK_TO_C = true.c \
           arrayLit.c \
           arraySize.c \
           arrayIndex.c
+          # arrayCoersion.c
 
 
 C_TO_EXE = true.bin \
@@ -48,10 +46,14 @@ C_TO_EXE = true.bin \
            array.bin \
            arrayLit.bin \
            arraySize.bin \
-           arrayIndex.bin \
+           arrayIndex.bin
+           # arrayCoersion.bin
 
 
-testAll : $(HK_TO_C) $(C_TO_EXE)
+testAll : testCoverage $(C_TO_EXE)
+testCoverage : $(HK_TO_C)
+# checkCG : $(HK_TO_C)
+# 	diff build/c/$^ src/c/$^
 
 ####################
 ## Hakaru to C
@@ -66,7 +68,6 @@ testAll : $(HK_TO_C) $(C_TO_EXE)
 
 %.bin : build/c/%.c buildDirBin
 	$(GCC) $(C_FLAGS) $< -o $(GCC_DIR)/$@
-	# $(ARM_GCC) $(C_FLAGS) $< -o $(ARM_GCC_DIR)/$@
 	$(CLANG) $(C_FLAGS) $< -o $(CLANG_DIR)/$@
 
 ####################
@@ -76,7 +77,6 @@ buildDirC :
 
 buildDirBin :
 	mkdir -p $(GCC_DIR)
-	# mkdir -p $(ARM_GCC_DIR)
 	mkdir -p $(CLANG_DIR)
 
 clean :
