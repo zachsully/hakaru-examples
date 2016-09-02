@@ -25,6 +25,8 @@ HK_TO_C = true.c \
           addInt2.c \
           addProb1.c \
           addProb2.c \
+	  summate.c \
+          product.c \
           array.c \
           arrayLit.c \
           arraySize.c \
@@ -51,6 +53,8 @@ C_TO_EXE = true.bin \
            addInt2.bin \
            addProb1.bin \
            addProb2.bin \
+           summate.bin \
+           product.bin \
            array.bin \
            arrayLit.bin \
            arraySize.bin \
