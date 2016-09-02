@@ -30,7 +30,12 @@ HK_TO_C = true.c \
           arrayCoercion.c \
           measureNormal.c \
           measureUniform.c \
-          measureDirac.c
+          measureDirac.c \
+          lam.c \
+          lam2.c \
+          lamMeasure.c \
+          simp_hello2.c \
+          simp_nbg.c
 
 
 C_TO_EXE = true.bin \
@@ -51,11 +56,18 @@ C_TO_EXE = true.bin \
            measureUniform.bin \
            measureDirac.bin
 
+C_TO_OBJ = lam.o \
+           lam2.o \
+           lamMeasure.o \
+	   simp_hello2.o \
+           simp_nbg.o
 
 
-testAll : $(C_TO_EXE)
+
+test : $(C_TO_EXE) $(C_TO_OBJ)
 
 $(C_TO_EXE) : $(HK_TO_C)
+$(C_TO_OBJ) : $(HK_TO_C)
 
 
 ####################
@@ -72,6 +84,10 @@ $(C_TO_EXE) : $(HK_TO_C)
 %.bin : build/c/%.c buildDirBin
 	$(GCC) $(C_FLAGS) $< -o $(GCC_DIR)/$@
 	$(CLANG) $(C_FLAGS) $< -o $(CLANG_DIR)/$@
+
+%.o : build/c/%.c buildDirBin
+	$(GCC) -c $(C_FLAGS) $< -o $(GCC_DIR)/$@
+	$(CLANG) -c $(C_FLAGS) $< -o $(CLANG_DIR)/$@
 
 ####################
 
