@@ -17,6 +17,8 @@ HKC_FLAGS=-O
 HK_TO_C = true.c \
           false.c \
           boolEq.c \
+          binaryAnd.c \
+          binaryAnd2.c \
           matchBool.c \
           matchNested.c \
 	  addInt1.c \
@@ -41,6 +43,8 @@ HK_TO_C = true.c \
 C_TO_EXE = true.bin \
            false.bin \
            boolEq.bin \
+           binaryAnd.bin \
+           binaryAnd2.bin \
            matchBool.bin \
            matchNested.bin \
            addInt1.bin \
