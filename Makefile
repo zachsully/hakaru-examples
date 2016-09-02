@@ -15,47 +15,48 @@ HKC_FLAGS=-O
 
 
 HK_TO_C = true.c \
-	  false.c \
+          false.c \
+          boolEq.c \
+          matchBool.c \
+          matchNested.c \
 	  addInt1.c \
           addInt2.c \
           addProb1.c \
           addProb2.c \
-          normal.c \
-          uniform.c \
-          dirac.c \
-          matchBool.c \
-          matchNested.c \
           array.c \
           arrayLit.c \
           arraySize.c \
           arrayIndex.c \
           arrayCoercion.c \
-          boolEq.c
+          measureNormal.c \
+          measureUniform.c \
+          measureDirac.c
 
 
 C_TO_EXE = true.bin \
            false.bin \
+           boolEq.bin \
+           matchBool.bin \
+           matchNested.bin \
            addInt1.bin \
            addInt2.bin \
            addProb1.bin \
            addProb2.bin \
-           normal.bin \
-           uniform.bin \
-           dirac.bin \
-           matchBool.bin \
-           matchNested.bin \
            array.bin \
            arrayLit.bin \
            arraySize.bin \
            arrayIndex.bin \
            arrayCoercion.bin \
-           boolEq.bin
+           measureNormal.bin \
+           measureUniform.bin \
+           measureDirac.bin
 
 
-testAll : testCoverage $(C_TO_EXE)
-testCoverage : $(HK_TO_C)
-# checkCG : $(HK_TO_C)
-# 	diff build/c/$^ src/c/$^
+
+testAll : $(C_TO_EXE)
+
+$(C_TO_EXE) : $(HK_TO_C)
+
 
 ####################
 ## Hakaru to C
