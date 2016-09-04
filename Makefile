@@ -38,7 +38,9 @@ HK_TO_C = true.c \
 	  superpose.c \
 	  superpose2.c \
           superpose3.c \
+          superpose5.c \
           superposeRec.c \
+          superposeNormals.c \
           lam.c \
           lam2.c \
           lamMeasure.c \
@@ -70,7 +72,9 @@ C_TO_EXE = true.bin \
            superpose.bin \
 	   superpose2.bin \
            superpose3.bin \
-           superposeRec.bin
+           superpose5.bin \
+           superposeRec.bin \
+           superposeNormals.bin
 
 
 C_TO_OBJ = lam.o \
