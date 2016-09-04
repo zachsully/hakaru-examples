@@ -1,0 +1,30 @@
+fn x array(real):
+ weight(((2 ** (nat2real(size(x)) * -1/2))
+          *
+         (pi ** (nat2real(size(x)) * -1/2))
+          *
+         exp((prob2real(recip(nat2prob((size(x) + 1))))
+               *
+              summate i from 0 to size(x): (x[i] ^ 2)
+               *
+              nat2real(size(x))
+               *
+              -1/2))
+          *
+         exp(((summate i from 0 to size(x): x[i] ^ 2)
+               *
+              prob2real(recip(nat2prob((size(x) + 1))))
+               /
+              2))
+          *
+         exp((prob2real(recip(nat2prob((size(x) + 1))))
+               *
+              summate i from 0 to size(x): (x[i] ^ 2)
+               *
+              -1/2))
+          /
+         sqrt((nat2prob(size(x)) + 1))),
+        normal((summate i from 0 to size(x): x[i]
+                 *
+                prob2real(recip(nat2prob((size(x) + 1))))),
+               recip(sqrt((nat2prob(size(x)) + 1)))))

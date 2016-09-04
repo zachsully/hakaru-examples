@@ -35,6 +35,10 @@ HK_TO_C = true.c \
           measureNormal.c \
           measureUniform.c \
           measureDirac.c \
+	  superpose.c \
+	  superpose2.c \
+          superpose3.c \
+          superposeRec.c \
           lam.c \
           lam2.c \
           lamMeasure.c \
@@ -62,7 +66,12 @@ C_TO_EXE = true.bin \
            arrayCoercion.bin \
            measureNormal.bin \
            measureUniform.bin \
-           measureDirac.bin
+           measureDirac.bin \
+           superpose.bin \
+	   superpose2.bin \
+           superpose3.bin \
+           superposeRec.bin
+
 
 C_TO_OBJ = lam.o \
            lam2.o \
@@ -72,7 +81,7 @@ C_TO_OBJ = lam.o \
 
 
 
-test : $(C_TO_EXE) $(C_TO_OBJ)
+test : $(C_TO_EXE)
 
 $(C_TO_EXE) : $(HK_TO_C)
 $(C_TO_OBJ) : $(HK_TO_C)
