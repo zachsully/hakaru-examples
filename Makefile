@@ -13,7 +13,7 @@ HKC_FLAGS=-O
 ##  TESTS
 ###################
 
-
+# Hakaru programs converted to C via HKC
 HK_TO_C = true.c \
           false.c \
           boolEq.c \
@@ -48,6 +48,7 @@ HK_TO_C = true.c \
           simp_nbg.c
 
 
+# C programs compiled to binary executables
 C_TO_EXE = true.bin \
            false.bin \
            boolEq.bin \
@@ -77,18 +78,38 @@ C_TO_EXE = true.bin \
            superposeNormals.bin
 
 
+# C function compiled to object files
 C_TO_OBJ = lam.o \
            lam2.o \
            lamMeasure.o \
 	   simp_hello2.o \
            simp_nbg.o
 
+# Executables ran to produce output
+OUTPUT  = true.out \
+          false.out \
+	  binaryAnd.out \
+          binaryAnd2.out \
+          matchBool.out \
+          matchNested.out \
+	  addInt1.out \
+          addInt2.out \
+          addProb1.out \
+          addProb2.out \
+	  summate.out \
+          product.out \
+          array.out \
+          arrayLit.out \
+          arraySize.out \
+          arrayIndex.out \
+          arrayCoercion.out \
 
 
 test : $(C_TO_EXE)
 
 $(C_TO_EXE) : $(HK_TO_C)
 $(C_TO_OBJ) : $(HK_TO_C)
+$(OUTPUT)   : $(C_TO_EXE)
 
 
 ####################
