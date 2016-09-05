@@ -4,7 +4,7 @@ GCC_DIR=build/gcc
 CLANG=clang
 CLANG_DIR=build/clang
 
-C_FLAGS=-std=c99 -pedantic -lm
+C_FLAGS=-std=c99 -pedantic -lm -g
 
 HKC=~/hakaru/dist/build/hkc/hkc
 HKC_FLAGS=-O
