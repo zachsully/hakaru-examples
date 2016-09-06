@@ -41,6 +41,7 @@ HK_TO_C = true.c \
           superpose5.c \
           superposeRec.c \
           superposeNormals.c \
+          plateDirac.c \
           lam.c \
           lam2.c \
           lamMeasure.c \
@@ -75,8 +76,8 @@ C_TO_EXE = true.bin \
            superpose3.bin \
            superpose5.bin \
            superposeRec.bin \
-           superposeNormals.bin
-
+           superposeNormals.bin \
+           plateDirac.bin
 
 # C function compiled to object files
 C_TO_OBJ = lam.o \
