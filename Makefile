@@ -109,13 +109,10 @@ OUTPUT  = true.out \
           arrayIndex.out \
           arrayCoercion.out \
 
-
-test : $(C_TO_EXE)
-
-$(C_TO_EXE) : $(HK_TO_C)
-$(C_TO_OBJ) : $(HK_TO_C)
-$(OUTPUT)   : $(C_TO_EXE)
-
+# build tests
+sea         : $(HK_TO_C)
+binaries    : $(C_TO_EXE)
+output      : $(OUTPUT)
 
 ####################
 ## Hakaru to C
@@ -124,17 +121,28 @@ $(OUTPUT)   : $(C_TO_EXE)
 %.c : src/hakaru/%.hk buildDirC
 	$(HKC) $(HKC_FLAGS) $< -o build/c/$@
 
+
 ######################
 ## C to Binaries
 ######################
 
 %.bin : build/c/%.c buildDirBin
-	$(GCC) $(C_FLAGS) $< -o $(GCC_DIR)/$@
-	$(CLANG) $(C_FLAGS) $< -o $(CLANG_DIR)/$@
+	$(GCC) $(C_FLAGS) $< -o $(GCC_DIR)/bin/$@
+	$(CLANG) $(C_FLAGS) $< -o $(CLANG_DIR)/bin/$@
 
 %.o : build/c/%.c buildDirBin
-	$(GCC) -c $(C_FLAGS) $< -o $(GCC_DIR)/$@
-	$(CLANG) -c $(C_FLAGS) $< -o $(CLANG_DIR)/$@
+	$(GCC) -c $(C_FLAGS) $< -o $(GCC_DIR)/bin/$@
+	$(CLANG) -c $(C_FLAGS) $< -o $(CLANG_DIR)/bin/$@
+
+
+#####################
+## Program Output
+#####################
+
+%.out : $(GCC_DIR)/bin/%.bin $(CLANG_DIR)/bin/%.bin buildDirOut
+	$< > $(GCC_DIR)/out/$@
+	$(word 2,$^) > $(CLANG_DIR)/out/$@
+
 
 ####################
 
@@ -142,8 +150,15 @@ buildDirC :
 	mkdir -p build/c
 
 buildDirBin :
-	mkdir -p $(GCC_DIR)
-	mkdir -p $(CLANG_DIR)
+	mkdir -p $(GCC_DIR)/bin
+	mkdir -p $(CLANG_DIR)/bin
+
+buildDirOut :
+	mkdir -p $(GCC_DIR)/out
+	mkdir -p $(CLANG_DIR)/out
+
+
+####################
 
 clean :
 	rm -rf build
