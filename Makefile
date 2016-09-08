@@ -111,6 +111,7 @@ OUTPUT  = true.out \
 
 
 test : $(C_TO_EXE)
+sea  : $(HK_TO_C)
 
 $(C_TO_EXE) : $(HK_TO_C)
 $(C_TO_OBJ) : $(HK_TO_C)
