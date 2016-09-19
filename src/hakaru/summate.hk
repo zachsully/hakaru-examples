@@ -1,1 +1,2 @@
-summate i from 0 to 6: i
+summate i from 0 to 100000000:
+  nat2prob(i)
