@@ -4,7 +4,30 @@ HKC compiles Hakaru programs to C. Programs stored in "src" directory are
 starting points for tests. In the future, output programs can be stored there
 as well.
 
+## Running HKC-Test on your machine
 
+You will have to make sure these variables are set on your machine.
+
+```
+GCC=gcc
+GCC_DIR=build/gcc
+
+CLANG=clang
+CLANG_DIR=build/clang
+
+C_FLAGS=-std=c99 -pedantic -lm -g
+
+HKC=~/hakaru/dist/build/hkc/hkc
+HKC_FLAGS=-O
+
+HAKARU=~/hakaru/dist/build/hakaru/hakaru
+```
+
+Then you can run the test pipeline:
+
+```
+make sea -j; make binaries -j; make output -j; make timed
+```
 
 ## Test Types ##
 
