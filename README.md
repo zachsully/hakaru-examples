@@ -30,6 +30,14 @@ Then you can run the test pipeline:
 make sea -j; make binaries -j; make output -j; make timed;
 ```
 
+NOTE:
+
+I use `-j` flag to parallelize where appropriate. The timed tests are not
+appropriate because we need to have all cores available to ensure that the
+parallel versions of the programs are being evaluated correctly.
+
+
+
 ## Test Types ##
 
 ### Testing Compiler Coverage ###
@@ -37,13 +45,31 @@ make sea -j; make binaries -j; make output -j; make timed;
 Testing the HKC compiler coverage involves putting Hakaru programs into it, if
 they produce valid C code then they pass the test. Portability is a vital
 concern, therefore each program is compiler with clang, gcc, and
-gcc-arm-none-eabi. The compiler flags used are "-std=c99 -pedantic" again for
+gcc-arm-none-eabi. The compiler flags used are `-std=c99 -pedantic` again for
 portability.
 
-### Testing Computations ###
+In order to test if HKC can even produce C at all:
+```
+make sea -j;
+```
+This will produce a directory "build/c" that will contain all the C code
+generated.
+
+
+To check if the generated C code compiles:
+```
+make binaries -j;
+```
+This will produce the directories "build/gcc/bin", "build/clang/bin",
+"build/gcc/pbin", and "build/clang/pbin", where the directories prefixed with
+"p" correspond to the parallel versions of the programs.
+
+
+### Testing Correctness of Computations ###
 
 Hakaru programs that have compute a value have type: Nat, Int, Real, Prob, or
 some datum. The output of these programs can be tests against known answers.
+
 
 ### Testing Measures ###
 
