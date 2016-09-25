@@ -9,6 +9,8 @@ C_FLAGS=-std=c99 -pedantic -lm -g
 HKC=~/hakaru/dist/build/hkc/hkc
 HKC_FLAGS=-O
 
+HAKARU=~/hakaru/dist/build/hakaru/hakaru
+
 ###################
 ##  TESTS
 ###################
@@ -109,10 +111,17 @@ OUTPUT  = true.out \
           arrayIndex.out \
           arrayCoercion.out \
 
+# Timed files generated when testing the time
+TIMED = summate.time \
+        product.time \
+        array.time
+
+
 # build tests
 sea         : $(HK_TO_C)
 binaries    : $(C_TO_EXE)
 output      : $(OUTPUT)
+timed       : $(TIMED)
 
 ####################
 ## Hakaru to C
@@ -144,6 +153,11 @@ output      : $(OUTPUT)
 	$(word 2,$^) > $(CLANG_DIR)/out/$@
 
 
+%.time : $(GCC_DIR)/bin/%.bin $(CLANG_DIR)/bin/%.bin src/hakaru/%.hk buildDirTime
+	{ time $<; } > /dev/null 2> $(GCC_DIR)/time/$@
+	{ time $(word 2,$^); } > /dev/null 2> $(CLANG_DIR)/time/$@
+	{ time $(HAKARU) $(word 3,$^); } > /dev/null 2> build/hakaru/time/$@
+
 ####################
 
 buildDirC :
@@ -156,6 +170,11 @@ buildDirBin :
 buildDirOut :
 	mkdir -p $(GCC_DIR)/out
 	mkdir -p $(CLANG_DIR)/out
+
+buildDirTime :
+	mkdir -p $(GCC_DIR)/time
+	mkdir -p $(CLANG_DIR)/time
+	mkdir -p build/hakaru/time
 
 
 ####################

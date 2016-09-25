@@ -1,0 +1,6 @@
+fn state nat:
+  match(state == 0):
+    true:  weight(0.5, dirac 0) <|> weight(0.5, dirac 1)
+    false: match(state == 1):
+    	     true:  weight(0.5, dirac 1) <|> weight(0.5, dirac 0)
+	     false: dirac 3
