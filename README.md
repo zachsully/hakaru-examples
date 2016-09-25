@@ -6,7 +6,8 @@ as well.
 
 ## Running HKC-Test on your machine
 
-You will have to make sure these variables are set on your machine.
+You will have to make sure these variables are set on your machine. They are at
+top of the Makefile.
 
 ```
 GCC=gcc
@@ -26,7 +27,7 @@ HAKARU=~/hakaru/dist/build/hakaru/hakaru
 Then you can run the test pipeline:
 
 ```
-make sea -j; make binaries -j; make output -j; make timed
+make sea -j; make binaries -j; make output -j; make timed;
 ```
 
 ## Test Types ##
