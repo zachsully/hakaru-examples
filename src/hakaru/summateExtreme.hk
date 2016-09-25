@@ -1,0 +1,2 @@
+summate i from 1 to 1000000000:
+   ((int2real(i)) / (int2real(i))) + 0
