@@ -197,6 +197,10 @@ buildDirTime :
 	mkdir -p $(CLANG_DIR)/ptime
 	mkdir -p build/hakaru/time
 
+buildDirSamp :
+	mkdir -p $(GCC_DIR)/time
+	mkdir -p $(CLANG_DIR)/time
+	mkdir -p build/hakaru/time
 
 ####################
 
