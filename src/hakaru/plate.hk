@@ -1,2 +1,2 @@
-plate i of 6:
-  return 1
+plate i of 66:
+  weight(1,return i)

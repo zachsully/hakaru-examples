@@ -1,0 +1,4 @@
+x <~ weight(1, dirac 1)
+y <~ weight(2, dirac 2)
+z <~ weight(3, dirac 3)
+return (x+y+z)
