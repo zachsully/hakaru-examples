@@ -9,6 +9,8 @@ C_FLAGS=-std=c99 -pedantic -lm -g
 HKC=~/hakaru/dist/build/hkc/hkc
 HKC_FLAGS=-O
 
+HCOMPILE=~/hakaru/dist/build/compile/compile
+
 HAKARU=~/hakaru/dist/build/hakaru/hakaru
 
 ###################
@@ -52,6 +54,42 @@ HK_TO_C = true.c \
           simp_hello2.c \
           simp_nbg.c
 
+# Hakaru programs converted to Haskell via compile
+HK_TO_HS = true.hs \
+           false.hs \
+           boolEq.hs \
+           binaryAnd.hs \
+           binaryAnd2.hs \
+           matchBool.hs \
+           matchNested.hs \
+           addInt1.hs \
+           addInt2.hs \
+           addProb1.hs \
+           addProb2.hs \
+           summate.hs \
+           product.hs \
+           array.hs \
+           arrayLit.hs \
+           arraySize.hs \
+           arrayIndex.hs \
+           arrayCoercion.hs \
+           measureNormal.hs \
+           measureUniform.hs \
+           measureDirac.hs \
+           superpose.hs \
+           superpose2.hs \
+           superpose3.hs \
+           superpose5.hs \
+           superposeRec.hs \
+           superposeNormals.hs \
+           plateDirac.hs \
+           plateUniform.hs \
+           plateNormal.hs \
+           lam.hs \
+           lam2.hs \
+           lamMeasure.hs \
+           simp_hello2.hs \
+           simp_nbhs.hs
 
 # C programs compiled to binary executables
 C_TO_EXE = true.bin \
@@ -131,6 +169,12 @@ timed       : $(TIMED)
 	$(HKC) $(HKC_FLAGS) $< -o build/c/$@
 	$(HKC) $(HKC_FLAGS) -j $< -o build/c/par/$@
 
+####################
+## Hakaru to Haskell
+####################
+
+%.hs : src/hakaru/%.hk buildDirHs
+	$(HCOMPILE) $<
 
 ######################
 ## C to Binaries
@@ -171,12 +215,17 @@ timed       : $(TIMED)
 	{ time $(HAKARU) $(word 5,$^); } > /dev/null 2> build/hakaru/time/$@
 
 ####################
+## Build Directories
+####################
 
 buildDirC :
 	mkdir -p build/c
 
 buildDirParC :
 	mkdir -p build/c/par
+
+buildDirHs :
+	mkdir -p build/hs
 
 buildDirBin :
 	mkdir -p $(GCC_DIR)/bin
