@@ -47,6 +47,7 @@ HK_TO_C = true.c \
           superposeNormals.c \
           plateDirac.c \
           plateUniform.c \
+          plateUniform2.c \
           plateNormal.c \
           lam.c \
           lam2.c \
@@ -84,6 +85,7 @@ HK_TO_HS = true.hs \
            superposeNormals.hs \
            plateDirac.hs \
            plateUniform.hs \
+           plateUniform2.hs \
            plateNormal.hs \
            lam.hs \
            lam2.hs \
@@ -121,6 +123,7 @@ C_TO_EXE = true.bin \
            superposeNormals.bin \
            plateDirac.bin \
            plateUniform.bin \
+           plateUniform2.bin \
            plateNormal.bin
 
 # C function compiled to object files
