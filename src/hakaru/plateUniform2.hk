@@ -1,0 +1,2 @@
+plate i of 100:
+  uniform(i,i+1)
