@@ -1,0 +1,6 @@
+x = true
+match (not(x)):
+  true: 0
+  false: match (x):
+           true: 42
+	   false: 6
