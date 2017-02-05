@@ -1,0 +1,2 @@
+x <~ dirac 0.3
+return (x + x  + x  + x  + x  + x  + x  + x  + x  + x  + x)

@@ -1,2 +1,2 @@
-summate i from 0 to 20:
+summate i from 0 to 10:
   nat2prob(i)

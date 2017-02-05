@@ -1,0 +1,4 @@
+summate i from 0 to 100:
+  summate j from 0 to 100:
+    summate k from 0 to 100:
+      nat2prob(i) + nat2prob(j) + nat2prob(k)
