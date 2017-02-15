@@ -1,0 +1,3 @@
+fn p pair(int,int):
+  match p:
+    (x,y): x + y

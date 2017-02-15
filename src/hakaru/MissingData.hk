@@ -1,0 +1,5 @@
+x <~ bern(0.1)
+match x:
+  true:  return (nothing().maybe(real))
+  false: (y <~ normal(0,1)
+  	  return (just(y).maybe(real)))

@@ -1,0 +1,3 @@
+match (just(0).maybe(int)):
+  nothing(): nothing().maybe(int)
+  just(x):   just(x+42).maybe(int)

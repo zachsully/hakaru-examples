@@ -1,0 +1,4 @@
+fn ma maybe(int):
+  match ma:
+    nothing(): nothing().maybe(int)
+    just(x):   just(x+42).maybe(int)
