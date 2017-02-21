@@ -1,0 +1,4 @@
+data vec3(a):
+  mkVec3(a,a,a)
+
+mkVec3(1,2,3)

@@ -1,0 +1,7 @@
+data vec3(a):
+  mkVec3(a,a,a)
+
+x = mkVec3(1,2,3)
+match x:
+  mkVec3(a,b,c):
+    a+b+c
