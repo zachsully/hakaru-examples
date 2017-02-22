@@ -1,0 +1,18 @@
+data modelParams():
+  normals(array(pair(real,prob)), # normally distributed weights
+          pair(real,prob))        # normally distributed bais
+
+data elem():
+  mkElem(array(int), # feature values
+         bool)       # category
+
+# sample a proposal model of features weights and a bias
+def linearProposal(params modelParams()):
+  match params:
+    normals(ws_prior,bias_prior):
+      ws <~ plate i of size(ws_prior):
+              match ws_prior[i]: (mu,si): normal(mu,si)
+      b <~ match bias_prior: (mu,si): normal(mu,si)
+      return (ws,b)
+
+linear
