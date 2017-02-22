@@ -1,0 +1,32 @@
+data datapoint():
+  mkDatapoint(array(int),int)
+
+data dataset():
+  mkDataset(array(datapoint()))
+
+    # compute gradients
+    # for (x,y) in data:
+    #   wTx = 0.0
+    #   for i in range(numvars):
+    #     wTx += w[i] * x[i]
+    #   expr = exp(-y*(wTx + b))
+    #   expr2 = exp(y*(wTx + b))
+
+
+    #   for i in range(numvars):
+    #     wg[i] -= (y*x[i]) / (1+expr2)
+    #   bg -= y / (1+expr2)
+
+
+def updateWeights(dat dataset(),
+                  weights array(prob),
+		  bias prob,
+		  eta prob,
+		  reg prob):
+  w_gradient = weights
+  b_gradient = bias
+  (array i of size(weights):
+     weights[i] - (eta*((w_gradient[i]) + (reg*weights[i])))
+  ,bias - (eta*b_gradient))
+
+updateWeights

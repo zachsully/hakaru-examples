@@ -1,0 +1,7 @@
+data foo():
+  bar
+
+data marco():
+  polo
+
+42
