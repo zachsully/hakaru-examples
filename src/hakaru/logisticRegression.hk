@@ -1,32 +1,31 @@
-data datapoint():
-  mkDatapoint(array(int),int)
+# performs a single update of the model for logistic regression
+def logisticUpdate( dset array(pair(array(int),int))
+                  , params pair(array(real),real)
+                  , eta prob
+                  , reg prob):
+  match params:
+  (feature_params,bias):
+    gradient_f =
+      array i of size(feature_params):  # foreach feature
+        summate d from 0 to size(dset): # forall data
+          match dset[d]:
+	  (features,label):
+            dot = summate k from 0 to size(features):
+                    features[k] * feature_params[k]
+            (label*features[i]) / (1 + exp(label*(dot + bias)))
+    gradient_b =
+      summate d from 0 to size(dset): # forall data
+        match dset[d]:
+	(features,label):
+          dot = summate k from 0 to size(features):
+                  features[k] * feature_params[k]
+          label / (1 + exp(label*(dot + bias)))
 
-data dataset():
-  mkDataset(array(datapoint()))
-
-    # compute gradients
-    # for (x,y) in data:
-    #   wTx = 0.0
-    #   for i in range(numvars):
-    #     wTx += w[i] * x[i]
-    #   expr = exp(-y*(wTx + b))
-    #   expr2 = exp(y*(wTx + b))
+    ( array i of size(feature_params):
+        feature_params[i]
+	- (eta*gradient_f[i])
+	+ (feature_params[i]*reg)
+    , bias - (eta*gradient_b))
 
 
-    #   for i in range(numvars):
-    #     wg[i] -= (y*x[i]) / (1+expr2)
-    #   bg -= y / (1+expr2)
-
-
-def updateWeights(dat dataset(),
-                  weights array(prob),
-		  bias prob,
-		  eta prob,
-		  reg prob):
-  w_gradient = weights
-  b_gradient = bias
-  (array i of size(weights):
-     weights[i] - (eta*((w_gradient[i]) + (reg*weights[i])))
-  ,bias - (eta*b_gradient))
-
-updateWeights
+logisticUpdate

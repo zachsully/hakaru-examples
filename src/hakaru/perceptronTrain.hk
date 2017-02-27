@@ -1,0 +1,19 @@
+# does looks at a single data point and updates weights
+def perceptronUpdate( features array(int)
+                    , label int
+		    , params pair(array(real),real)):
+  match params:
+    (feature_params,bias):
+      # compute activation for this data point
+      activation = bias +
+        summate i from 0 to size(feature_params):
+	  features[i] * feature_params[i]
+
+      # if classified incorrectly
+      match label*activation <= 0.0:
+        true: ( array i of size(features):
+	          feature_params[i] + (label*features[i])
+	      , label+bias)
+        false: params
+
+perceptronUpdate
