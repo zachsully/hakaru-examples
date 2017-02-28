@@ -1,0 +1,21 @@
+def exponential(lambda prob):
+  x <~ uniform(0,1)
+  return lambda * exp(x)
+
+def dotProduct( a array(real)
+              , b array(real)):
+  summate i from 0 to size(a):
+    a[i] * b[i]
+
+def logistic(a real):
+  1/(1+exp(a))
+
+def hlr( lambda prob
+       , k nat
+       , xs array(real)):
+  variance <~ exponential(lambda)
+  bias <~ normal(0,variance)
+  features <~ plate i of k: normal(0,variance)
+  return bern(logistic(dotProduct(xs,features) + bias))
+
+hlr
