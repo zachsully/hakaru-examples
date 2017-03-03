@@ -1,0 +1,5 @@
+x = 42
+f = fn x real:
+      fn y real:
+        42
+42

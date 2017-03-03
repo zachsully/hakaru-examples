@@ -1,0 +1,3 @@
+x = 42
+f = fn x array(nat): 42
+42

@@ -1,0 +1,7 @@
+def idInt(a int):
+  a
+
+def idNat(a nat):
+  a
+
+42

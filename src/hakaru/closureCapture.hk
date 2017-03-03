@@ -1,0 +1,3 @@
+x = exp(42)
+f = fn y real: x
+42

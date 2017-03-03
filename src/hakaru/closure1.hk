@@ -1,0 +1,4 @@
+x = 42
+foo = fn y real: x
+
+x
