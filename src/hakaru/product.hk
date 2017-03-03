@@ -1,2 +1,2 @@
-product i from 1 to 100000000:
-  nat2prob(i)
+product i from 1 to 13:
+  i

@@ -1,0 +1,3 @@
+product i from 1 to 4:
+  product j from 1 to 4:
+    i + j

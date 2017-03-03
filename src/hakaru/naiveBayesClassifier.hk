@@ -1,0 +1,11 @@
+def binomial(n nat, p prob):
+  xs <~ plate i of n: bern(p)
+  return summate i from 0 to n:
+           match xs[i]:
+	     true:  0
+	     false: 1
+
+label <~ binomial(8, 0.7)
+xs <~ plate i of 10:
+        normal(0,2)
+return (xs,label)

@@ -1,0 +1,2 @@
+product i from 1 to 25:
+  nat2prob(i)

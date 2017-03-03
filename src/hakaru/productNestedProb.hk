@@ -1,0 +1,3 @@
+product i from 1 to 6:
+  product j from 1 to 6:
+    nat2prob(i) + nat2prob(j)
