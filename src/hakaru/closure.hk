@@ -1,0 +1,4 @@
+foo = 42
+foo2 = 0
+bar = fn x int: foo + foo2
+bar(0)
