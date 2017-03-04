@@ -10,6 +10,7 @@ bar(0)
 
 struct clos_b
 {
+  int * fn (struct clos_b _c, int x_d);
   int a;
   int b;
 };
@@ -31,8 +32,9 @@ int main()
   struct clos_b _g;
   foo_e = 42;
   foo2_f = 0;
+  _g.fn = &fn_a;
   _g.a = foo_e;
   _g.b = foo2_f;
-  result = fn_a(_g,0);
+  result = (*_g.fn)(_g,0);
   printf("%d\n",result);
 }
