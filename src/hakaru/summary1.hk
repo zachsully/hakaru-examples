@@ -1,0 +1,12 @@
+fn t array(nat):
+  fn z array(nat):
+    y = (summate i from 0 to size(t):
+           match (1 == z[i]):
+	     true: t[i]
+             false: 0)
+    z = (product i from 0 to size(t):
+           match (1 == z[i]):
+	     true: t[i]
+             false: 1)
+    array i of y:
+      (i * z) + y

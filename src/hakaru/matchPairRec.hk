@@ -1,0 +1,4 @@
+x = (12,(23,4))
+match x:
+  (y,z): match z:
+          (o,p): y + o + p

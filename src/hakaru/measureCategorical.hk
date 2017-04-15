@@ -1,2 +1,2 @@
-arr = array i of 20: i/5
+arr = array i of 20: 1/20
 categorical(arr)
