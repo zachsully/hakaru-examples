@@ -22,13 +22,34 @@ import qualified Data.Text.IO as IO
 
 
 main :: IO ()
-main = compileHakaru bucket1 "foo.c"
+main = compileHakaru bucketFanout2 "foo.c"
 
-bucket1 :: TrivialABT Term '[] 'HNat
-bucket1 = triv $ bucket (nat_ 0) (nat_ 10) (r_add (const (nat_ 1)))
+bucketAdd :: TrivialABT Term '[] 'HNat
+bucketAdd = triv $ bucket (nat_ 0) (nat_ 10) (r_add (const (nat_ 1)))
+
+bucketNoOp :: TrivialABT Term '[] HUnit
+bucketNoOp = triv $ bucket (nat_ 0) (nat_ 10) r_nop
+
+bucketFanout :: TrivialABT Term '[] (HPair 'HNat 'HNat)
+bucketFanout = triv $ bucket (nat_ 0) (nat_ 10)
+  (r_fanout (r_add (const (nat_ 1)))
+            (r_add (const (nat_ 2))))
+
+bucketFanout2 :: TrivialABT Term '[] (HPair 'HNat (HPair 'HNat 'HNat))
+bucketFanout2 = triv $ bucket (nat_ 0) (nat_ 10)
+  (r_fanout (r_add (const (nat_ 1)))
+            (r_fanout (r_add (const (nat_ 2)))
+                      (r_add (const (nat_ 3)))))
+
+bucketSplit :: TrivialABT Term '[] (HPair 'HNat 'HNat)
+bucketSplit = triv $ bucket (nat_ 0) (nat_ 10)
+  (r_split (const true)
+           (r_add (const (nat_ 1)))
+           (r_add (const (nat_ 2))))
+
 
 compileHakaru
-  :: TrivialABT Term '[] 'HNat
+  :: TrivialABT Term '[] a
   -> FilePath
   -> IO ()
 compileHakaru abt outFile = do
