@@ -22,7 +22,14 @@ import qualified Data.Text.IO as IO
 
 
 main :: IO ()
-main = compileHakaru bucketFanout2 "foo.c"
+main = do
+  compileHakaru bucketAdd "bucketAdd.c"
+  -- compileHakaru bucketNoOp "bucketNoOp.c"
+  compileHakaru bucketFanout "bucketFanout.c"
+  compileHakaru bucketFanout2 "bucketFanout2.c"
+  compileHakaru bucketFanout3 "bucketFanout3.c"
+  compileHakaru bucketSplit "bucketSplit.c"
+  compileHakaru bucketIndex "bucketIndex.c"
 
 bucketAdd :: TrivialABT Term '[] 'HNat
 bucketAdd = triv $ bucket (nat_ 0) (nat_ 10) (r_add (const (nat_ 1)))
@@ -41,11 +48,22 @@ bucketFanout2 = triv $ bucket (nat_ 0) (nat_ 10)
             (r_fanout (r_add (const (nat_ 2)))
                       (r_add (const (nat_ 3)))))
 
+bucketFanout3 :: TrivialABT Term '[] (HPair 'HNat HUnit)
+bucketFanout3 = triv $ bucket (nat_ 0) (nat_ 10)
+  (r_fanout (r_add (const (nat_ 1)))
+            r_nop)
+
 bucketSplit :: TrivialABT Term '[] (HPair 'HNat 'HNat)
 bucketSplit = triv $ bucket (nat_ 0) (nat_ 10)
   (r_split (const true)
            (r_add (const (nat_ 1)))
            (r_add (const (nat_ 2))))
+
+bucketIndex :: TrivialABT Term '[] ('HArray 'HNat)
+bucketIndex = triv $ bucket (nat_ 0) (nat_ 10)
+  (r_index (const (nat_ 1))
+           (const (nat_ 5))
+           (r_add (const (nat_ 42))))
 
 
 compileHakaru
@@ -58,7 +76,7 @@ compileHakaru abt outFile = do
       codeGenConfig = emptyCG
       cast = CAST $ runCodeGenWith codeGen codeGenConfig
       output  = pack . render . pretty $ cast
-  IO.writeFile "foo.c" output
+  IO.writeFile outFile output
   where abtPasses = [ expandTransformations
                     , constantPropagation
                     -- , optimizations
