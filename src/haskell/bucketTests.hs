@@ -61,7 +61,7 @@ bucketSplit = triv $ bucket (nat_ 0) (nat_ 10)
 
 bucketIndex :: TrivialABT Term '[] ('HArray 'HNat)
 bucketIndex = triv $ bucket (nat_ 0) (nat_ 10)
-  (r_index (const (nat_ 1))
+  (r_index (const (nat_ 10))
            (const (nat_ 5))
            (r_add (const (nat_ 42))))
 
