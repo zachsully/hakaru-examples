@@ -31,6 +31,7 @@ main = do
   compileHakaru bucketFanout4 "bucketFanout4.c"
   compileHakaru bucketSplit "bucketSplit.c"
   compileHakaru bucketIndex "bucketIndex.c"
+  compileHakaru bucketIndex2 "bucketIndex2.c"
 
 bucketAdd :: TrivialABT Term '[] 'HNat
 bucketAdd = triv $ bucket (nat_ 0) (nat_ 10) (r_add (const (nat_ 1)))
@@ -72,6 +73,13 @@ bucketIndex = triv $ bucket (nat_ 0) (nat_ 10)
   (r_index (const (nat_ 10))
            (const (nat_ 5))
            (r_add (const (nat_ 42))))
+
+bucketIndex2 :: TrivialABT Term '[] ('HArray (HPair 'HNat 'HNat))
+bucketIndex2 = triv $ bucket (nat_ 0) (nat_ 10)
+  (r_index (const (nat_ 10))
+           (const (nat_ 5))
+           (r_fanout (r_add (const (nat_ 1)))
+                     (r_add (const (nat_ 2)))))
 
 
 compileHakaru
