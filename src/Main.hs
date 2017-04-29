@@ -30,7 +30,9 @@ createBuildDirectory :: IO ()
 createBuildDirectory = createDirectoryIfMissing False "build"
 
 reportStats :: [Maybe a] -> IO ()
-reportStats xs = putStrLn $ "\n\nPassed " <> (show success) <> " of " <> (show total) <> "\n\n"
+reportStats xs = putStrLn $ stars <> "\nPassed "
+                         <> (show success) <> " of " <> (show total)
+                         <> "\n" <> stars
   where (success,total) = foldr (\x (s,t) -> case x of
                                   Just _  -> (succ s,succ t)
                                   Nothing -> (s, succ t)
@@ -38,35 +40,40 @@ reportStats xs = putStrLn $ "\n\nPassed " <> (show success) <> " of " <> (show t
 
 hakaruToC :: String -> FilePath -> IO (Maybe FilePath)
 hakaruToC hkc fp =
-  let fp' = "build" </> (takeBaseName fp) <.> "c"
+  let fp' = "build" </> "sea" </> (takeBaseName fp) <.> "c"
       process = proc hkc ["tests" </> "hakaru" </> fp
                          ,"-o"
                          ,fp']
   in
-    do putStrLn $ "hkc: (" <> fp <> " , " <> fp' <> ")"
+    do createDirectoryIfMissing False ("build" </> "sea")
+       putStrLn $ "hkc: (" <> fp <> " , " <> fp' <> ")"
        (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
        exitcode <- waitForProcess pH
        case exitcode of
          ExitSuccess -> return (Just fp')
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "hakaruToC.log" ("\n" <> fp <>":\n" <> err)
+                 appendFile "build/hkc.log" (stars <> fp <>":\n" <> err)
                  return Nothing
 
 cToBinary :: String -> FilePath -> IO (Maybe FilePath)
 cToBinary cc fp =
-  let fp' = "build" </> (takeBaseName fp) <.> "c"
+  let fp' = "build" </> "bin" </> (takeBaseName fp) <.> "c"
       process = proc cc ["-lm","-std=c99","-pedantic",fp,"-o",fp']
   in
-    do putStrLn $ "cc: (" <> fp <> " , " <> fp' <> ")"
+    do createDirectoryIfMissing False ("build" </> "bin")
+       putStrLn $ "cc: (" <> fp <> " , " <> fp' <> ")"
        (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
        exitcode <- waitForProcess pH
        case exitcode of
          ExitSuccess -> return (Just fp')
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "hakaruToC.log" ("\n" <> fp <>":\n" <> err)
+                 appendFile "build/cc.log" (stars <> fp <>":\n" <> err)
                  return Nothing
+
+stars :: String
+stars = "\n" <> replicate 80 '*' <> "\n"
 
 binaryToOutput :: FilePath -> IO FilePath
 binaryToOutput = undefined
