@@ -1,3 +1,5 @@
+ROOT = $(PWD)
+
 GCC=gcc
 GCC_DIR=build/gcc
 
@@ -7,7 +9,7 @@ CLANG_DIR=build/clang
 C_FLAGS=-std=c99 -pedantic -lm -g
 
 HKC=~/hakaru/dist/build/hkc/hkc
-HKC_FLAGS=-O
+HKC_FLAGS=
 
 HCOMPILE=~/hakaru/dist/build/compile/compile
 
@@ -45,6 +47,7 @@ HK_TO_C = true.c \
           superpose5.c \
           superposeRec.c \
           superposeNormals.c \
+	  nb_simp.c \
           plateDirac.c \
           plateUniform.c \
           plateUniform2.c \
@@ -127,7 +130,8 @@ C_TO_EXE = true.bin \
            plateNormal.bin
 
 # C function compiled to object files
-C_TO_OBJ = lam.o \
+C_TO_OBJ = nb_simp.o \
+	   lam.o \
            lam2.o \
            lamMeasure.o \
 	   simp_hello2.o \
@@ -160,6 +164,7 @@ TIMED = summate.time \
 
 # build tests
 sea         : $(HK_TO_C)
+objects     : $(C_TO_OBJ)
 binaries    : $(C_TO_EXE)
 output      : $(OUTPUT)
 timed       : $(TIMED)
@@ -186,14 +191,14 @@ timed       : $(TIMED)
 %.bin : build/c/%.c build/c/par/%.c buildDirBin buildDirParBin
 	$(GCC) $(C_FLAGS) $< -o $(GCC_DIR)/bin/$@
 	$(CLANG) $(C_FLAGS) $< -o $(CLANG_DIR)/bin/$@
-	$(GCC) -fopenmp $(C_FLAGS) $(word 2,$^) -o $(GCC_DIR)/pbin/$@
-	$(CLANG) -fopenmp $(C_FLAGS) $(word 2,$^) -o $(CLANG_DIR)/pbin/$@
+	# $(GCC) -fopenmp $(C_FLAGS) $(word 2,$^) -o $(GCC_DIR)/pbin/$@
+	# $(CLANG) -fopenmp $(C_FLAGS) $(word 2,$^) -o $(CLANG_DIR)/pbin/$@
 
 %.o : build/c/%.c build/c/par/%.c buildDirBin buildDirParBin
 	$(GCC) -c $(C_FLAGS) $< -o $(GCC_DIR)/bin/$@
 	$(CLANG) -c $(C_FLAGS) $< -o $(CLANG_DIR)/bin/$@
-	$(GCC) -fopenmp $(C_FLAGS) $(word 2,$^) -o $(GCC_DIR)/pbin/$@
-	$(CLANG) -fopenmp $(C_FLAGS) $(word 2,$^) -o $(CLANG_DIR)/pbin/$@
+	# $(GCC) -fopenmp $(C_FLAGS) $(word 2,$^) -o $(GCC_DIR)/pbin/$@
+	# $(CLANG) -fopenmp $(C_FLAGS) $(word 2,$^) -o $(CLANG_DIR)/pbin/$@
 
 
 #####################
@@ -211,11 +216,11 @@ timed       : $(TIMED)
 	 $(CLANG_DIR)/pbin/%.bin \
 	 src/hakaru/%.hk \
 	 buildDirTime
-	{ time $<; } > /dev/null 2> $(GCC_DIR)/time/$@
-	{ time $(word 2,$^); } > /dev/null 2> $(CLANG_DIR)/time/$@
-	{ time $(word 3,$^); } > /dev/null 2> $(GCC_DIR)/ptime/$@
-	{ time $(word 4,$^); } > /dev/null 2> $(CLANG_DIR)/ptime/$@
-	{ time $(HAKARU) $(word 5,$^); } > /dev/null 2> build/hakaru/time/$@
+	{ time -p $<; } > /dev/null 2> $(GCC_DIR)/time/$@
+	{ time -p $(word 2,$^); } > /dev/null 2> $(CLANG_DIR)/time/$@
+	{ time -p $(word 3,$^); } > /dev/null 2> $(GCC_DIR)/ptime/$@
+	{ time -p $(word 4,$^); } > /dev/null 2> $(CLANG_DIR)/ptime/$@
+	{ time -p $(HAKARU) $(word 5,$^); } > /dev/null 2> build/hakaru/time/$@
 
 ####################
 ## Build Directories
