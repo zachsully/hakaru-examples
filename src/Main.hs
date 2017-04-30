@@ -16,11 +16,11 @@ main = do
   tests   <- getTests
   createBuildDirectory
   tests' <- mapM (hakaruToC hkc) tests
-  reportStats tests'
+  reportStats "HKC Tests" tests'
   tests'' <- mapM (\t -> case t of
                     Just x -> cToBinary cc x
                     Nothing -> return Nothing) tests'
-  reportStats tests''
+  reportStats "CC Tests" tests''
   putStrLn "Fin."
 
 getTests :: IO [FilePath]
@@ -29,10 +29,11 @@ getTests = filter ((== ".hk") . takeExtension) <$> listDirectory "tests/hakaru"
 createBuildDirectory :: IO ()
 createBuildDirectory = createDirectoryIfMissing False "build"
 
-reportStats :: [Maybe a] -> IO ()
-reportStats xs = putStrLn $ stars <> "\nPassed "
-                         <> (show success) <> " of " <> (show total)
-                         <> "\n" <> stars
+reportStats :: String -> [Maybe a] -> IO ()
+reportStats test xs =
+   putStrLn $ stars <> "\n" <> test <> ": passed "
+           <> (show success) <> " of " <> (show total)
+           <> "\n" <> stars
   where (success,total) = foldr (\x (s,t) -> case x of
                                   Just _  -> (succ s,succ t)
                                   Nothing -> (s, succ t)
@@ -58,8 +59,9 @@ hakaruToC hkc fp =
 
 cToBinary :: String -> FilePath -> IO (Maybe FilePath)
 cToBinary cc fp =
-  let fp' = "build" </> "bin" </> (takeBaseName fp) <.> "c"
-      process = proc cc ["-lm","-std=c99","-pedantic",fp,"-o",fp']
+  let fp' = "build" </> "bin" </> (takeBaseName fp)
+      process = proc cc ["-O3","-march=native","-lm","-std=c99","-pedantic"
+                        ,fp,"-o",fp']
   in
     do createDirectoryIfMissing False ("build" </> "bin")
        putStrLn $ "cc: (" <> fp <> " , " <> fp' <> ")"
