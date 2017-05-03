@@ -6,6 +6,7 @@ import System.FilePath.Posix
 import System.Environment
 
 import Data.Monoid
+import Data.Maybe (isJust, fromJust)
 
 main :: IO ()
 main = do
@@ -15,11 +16,11 @@ main = do
                   _           -> error "Usage: hkc-tests <HKC> <CC>"
   tests   <- getTests
   createBuildDirectory
+  putStrLn $ stars <> "TESTING HKC" <> stars
   tests' <- mapM (hakaruToC hkc) tests
+  putStrLn $ stars <> "TESTING CC" <> stars
+  tests'' <- mapM (cToBinary cc . fromJust) . filter isJust $ tests'
   reportStats "HKC Tests" tests'
-  tests'' <- mapM (\t -> case t of
-                    Just x -> cToBinary cc x
-                    Nothing -> return Nothing) tests'
   reportStats "CC Tests" tests''
   putStrLn "Fin."
 
@@ -29,15 +30,19 @@ getTests = filter ((== ".hk") . takeExtension) <$> listDirectory "tests/hakaru"
 createBuildDirectory :: IO ()
 createBuildDirectory = createDirectoryIfMissing False "build"
 
+getStats :: [Maybe a] -> (Int,Int)
+getStats xs =
+  foldr (\x (s,t) -> case x of
+                      Just _  -> (succ s,succ t)
+                      Nothing -> (s, succ t)
+        ) (0,0) xs
+
 reportStats :: String -> [Maybe a] -> IO ()
 reportStats test xs =
    putStrLn $ stars <> "\n" <> test <> ": passed "
            <> (show success) <> " of " <> (show total)
            <> "\n" <> stars
-  where (success,total) = foldr (\x (s,t) -> case x of
-                                  Just _  -> (succ s,succ t)
-                                  Nothing -> (s, succ t)
-                                ) (0,0) xs
+   where (success,total) = getStats xs
 
 hakaruToC :: String -> FilePath -> IO (Maybe FilePath)
 hakaruToC hkc fp =
