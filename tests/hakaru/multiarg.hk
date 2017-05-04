@@ -1,0 +1,5 @@
+fn w nat:
+  fn x int:
+    fn y real:
+      fn z prob:
+        42
