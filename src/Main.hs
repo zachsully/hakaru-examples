@@ -52,7 +52,7 @@ hakaruToC hkc fp =
                          ,fp']
   in
     do createDirectoryIfMissing False ("build" </> "sea")
-       putStrLn $ "hkc: (" <> fp <> " , " <> fp' <> ")"
+       putStrLn $ "hkc: ( " <> fp <> " , " <> fp' <> " )"
        (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
        exitcode <- waitForProcess pH
        case exitcode of
@@ -69,7 +69,7 @@ cToBinary cc fp =
                         ,fp,"-o",fp']
   in
     do createDirectoryIfMissing False ("build" </> "bin")
-       putStrLn $ "cc: (" <> fp <> " , " <> fp' <> ")"
+       putStrLn $ "cc: ( " <> fp <> " , " <> fp' <> " )"
        (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
        exitcode <- waitForProcess pH
        case exitcode of
