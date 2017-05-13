@@ -59,7 +59,8 @@ stars = "\n" <> replicate 80 '*' <> "\n"
 hakaruToC :: String -> FilePath -> IO (Maybe FilePath)
 hakaruToC hkc fp =
   let fp' = "build" </> "sea" </> (takeBaseName fp) <.> "c"
-      process = proc hkc ["tests" </> "hakaru" </> fp
+      process = proc hkc ["-g"
+                         ,"tests" </> "hakaru" </> fp
                          ,"-o"
                          ,fp']
   in
@@ -71,14 +72,14 @@ hakaruToC hkc fp =
          ExitSuccess -> return (Just fp')
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "build/hkc.log" (stars <> fp <>":\n" <> err)
+                 appendFile "build/hkc.log" (stars <> fp <>":\n\n" <> err)
                  return Nothing
 
 -- Check to see if it produces legal C code
 cToBinary :: String -> FilePath -> IO (Maybe FilePath)
 cToBinary cc fp =
   let fp' = "build" </> "bin" </> (takeBaseName fp)
-      process = proc cc ["-O3","-march=native","-lm","-std=c99","-pedantic"
+      process = proc cc ["-O3","-march=native","-lm","-lgc","-std=c99","-pedantic"
                         ,fp,"-o",fp']
   in
     do createDirectoryIfMissing False ("build" </> "bin")
@@ -89,7 +90,7 @@ cToBinary cc fp =
          ExitSuccess -> return (Just fp')
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "build/cc.log" (stars <> fp <>":\n" <> err)
+                 appendFile "build/cc.log" (stars <> fp <>":\n\n" <> err)
                  return Nothing
 
 -- we will want the type of the program for testing output
@@ -106,5 +107,5 @@ binaryToOutput fp =
          ExitSuccess -> return (Just fp')
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "build/output.log" (stars <> fp <>":\n" <> err)
+                 appendFile "build/output.log" (stars <> fp <>":\n\n" <> err)
                  return Nothing
