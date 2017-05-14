@@ -19,7 +19,22 @@ import System.Directory
 import System.FilePath.Posix
 import System.Environment
 
-type Test = FilePath
+newtype Test = Test String
+
+instance Show Test where
+  show (Test name) = "Test: " <> show name
+
+testName :: Test -> String
+testName (Test name) = name
+
+testFP,inputFP,correctOutputFP,outputFP,seaFP,binFP :: Test -> FilePath
+testFP          (Test name) = "tests" </> "hakaru" </> name <.> "hk"
+inputFP         (Test name) = "tests" </> "input"  </> name <.> "in"
+correctOutputFP (Test name) = "tests" </> "output" </> name <.> "out"
+outputFP        (Test name) = "build" </> "output" </> name <.> "out"
+seaFP           (Test name) = "build" </> "sea"    </> name <.> "c"
+binFP           (Test name) = "build" </> "bin"    </> name <.> "bin"
+
 
 main :: IO ()
 main = do
@@ -35,7 +50,7 @@ main = do
   tests' <- mapM (hakaruToC hkc) tests
 
   putStrLn $ stars <> "TESTING CC" <> stars
-  tests'' <- mapM (cToBinary cc . fromJust) . filter isJust $ tests'
+  tests'' <- mapM (cToBinary cc . fst) . filter snd $ tests'
 
   -- putStrLn $ stars <> "TESTING OUTPUT" <> stars
   -- tests''' <- mapM (binaryToOutput . fromJust) . filter isJust $ tests''
@@ -45,8 +60,10 @@ main = do
   -- reportStats "Output Tests" tests'''
   putStrLn "Fin."
 
-getTests :: IO [FilePath]
-getTests = filter ((== ".hk") . takeExtension) <$> listDirectory "tests/hakaru"
+getTests :: IO [Test]
+getTests = do
+   files <- listDirectory ("tests" </> "hakaru")
+   return . fmap (Test . takeBaseName) . filter ((== ".hk") . takeExtension) $ files
 
 getHkTypedTerm :: FilePath -> IO (Maybe (TypedAST (TrivialABT Term)))
 getHkTypedTerm fp = do
@@ -55,14 +72,14 @@ getHkTypedTerm fp = do
     Left err               -> IO.hPutStrLn stderr err >> return Nothing
     Right term -> return (Just term)
 
-getStats :: [Maybe a] -> (Int,Int)
+getStats :: [(Test,Bool)] -> (Int,Int)
 getStats xs =
-  foldr (\x (s,t) -> case x of
-                      Just _  -> (succ s,succ t)
-                      Nothing -> (s, succ t)
+  foldr (\x (s,t) -> case snd x of
+                      True  -> (succ s,succ t)
+                      False -> (s, succ t)
         ) (0,0) xs
 
-reportStats :: String -> [Maybe a] -> IO ()
+reportStats :: String -> [(Test,Bool)] -> IO ()
 reportStats test xs =
    putStrLn $ stars <> "\n" <> test <> ": passed "
            <> (show success) <> " of " <> (show total)
@@ -80,45 +97,40 @@ stars = "\n" <> replicate 80 '*' <> "\n"
 Take in a Hakaru source file and produce a C file. Encountered errors here are
 incomplete implementations of Hakaru programs in HKC
 -}
-hakaruToC :: String -> FilePath -> IO (Maybe FilePath)
-hakaruToC hkc fp =
-  let fp' = "build" </> "sea" </> (takeBaseName fp) <.> "c"
-      process = proc hkc ["-g"
-                         ,"tests" </> "hakaru" </> fp
-                         ,"-o"
-                         ,fp']
+hakaruToC :: String -> Test -> IO (Test,Bool)
+hakaruToC hkc test =
+  let process = proc hkc ["-g",testFP test,"-o",seaFP test]
   in
     do createDirectoryIfMissing False ("build" </> "sea")
-       putStrLn $ "hkc: ( " <> fp <> " , " <> fp' <> " )"
+       putStrLn $ "hkc: ( " <> testFP test <> " , " <> seaFP test <> " )"
        (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
        exitcode <- waitForProcess pH
        case exitcode of
-         ExitSuccess -> return (Just fp')
+         ExitSuccess -> return (test,True)
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "build/hkc.log" (stars <> fp <>":\n\n" <> err)
-                 return Nothing
+                 appendFile "build/hkc.log" (stars <> testFP test <>":\n\n" <> err)
+                 return (test,False)
 
 {-
 Take the C code produced by HKC and compile to an executable using some C compiler.
-Encountered here could be missing libraries and bad code generation.  
+Encountered here could be missing libraries and bad code generation.
 -}
-cToBinary :: String -> FilePath -> IO (Maybe FilePath)
-cToBinary cc fp =
-  let fp' = "build" </> "bin" </> (takeBaseName fp)
-      process = proc cc ["-O3","-march=native","-lm","-lgc","-std=c99","-pedantic"
-                        ,fp,"-o",fp']
+cToBinary :: String -> Test -> IO (Test,Bool)
+cToBinary cc test =
+  let process = proc cc ["-O3","-march=native","-lm","-lgc","-std=c99","-pedantic"
+                        ,seaFP test,"-o",binFP test]
   in
     do createDirectoryIfMissing False ("build" </> "bin")
-       putStrLn $ "cc: ( " <> fp <> " , " <> fp' <> " )"
+       putStrLn $ "cc: ( " <> seaFP test <> " , " <> binFP test <> " )"
        (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
        exitcode <- waitForProcess pH
        case exitcode of
-         ExitSuccess -> return (Just fp')
+         ExitSuccess -> return (test,True)
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "build/cc.log" (stars <> fp <>":\n\n" <> err)
-                 return Nothing
+                 appendFile "build/cc.log" (stars <> seaFP test <>":\n\n" <> err)
+                 return (test,False)
 
 {-
 This is a more complicated then the other two tests. It needs to see if there is
@@ -130,26 +142,25 @@ executable.
 
 Possible errors here
 -}
-binaryToOutput :: FilePath -> IO (Maybe FilePath)
-binaryToOutput fp =
-  let fp' = "build" </> "output" </> fp </> "out"
-      process = proc fp [">",fp']
+binaryToOutput :: Test -> IO (Test,Bool)
+binaryToOutput test =
+  let process = proc (binFP test) [">",outputFP test]
   in
     do createDirectoryIfMissing False ("build" </> "output")
-       putStrLn $ "output: ( " <> fp <> " , " <> fp' <> " )"
+       putStrLn $ "output: ( " <> binFP test <> " , " <> outputFP test <> " )"
        (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
        exitcode <- waitForProcess pH
        case exitcode of
-         ExitSuccess -> return (Just fp')
+         ExitSuccess -> return (test,True)
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "build/output.log" (stars <> fp <>":\n\n" <> err)
-                 return Nothing
+                 appendFile "build/output.log" (stars <> binFP test <>":\n\n" <> err)
+                 return (test,False)
 
 {-
 Takes the output of a run HKC generated program and tests it against the output
 in `tests/output`. Problems here could be that there is no standardized output
 or floating point errors.
--}  
-checkOutput :: FilePath -> IO (Maybe Bool)
+-}
+checkOutput :: Test -> IO (Maybe Bool)
 checkOutput = undefined
