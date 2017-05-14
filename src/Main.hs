@@ -1,12 +1,25 @@
-import Data.Monoid
-import Data.Maybe (isJust, fromJust)
--- import Options.Applicative
+{-# LANGUAGE DataKinds,
+             KindSignatures #-}
+
+import           Data.Monoid
+import           Data.Maybe (isJust, fromJust)
+import qualified Data.Text.IO as IO
+
+import Language.Hakaru.Command hiding (Term)
+import Language.Hakaru.Types.DataKind
+import Language.Hakaru.Types.Sing
+import Language.Hakaru.Syntax.ABT
+import Language.Hakaru.Syntax.AST
+import Language.Hakaru.Syntax.TypeCheck
+
 import System.IO
 import System.Process
 import System.Exit
 import System.Directory
 import System.FilePath.Posix
 import System.Environment
+
+type Test = FilePath
 
 main :: IO ()
 main = do
@@ -15,7 +28,7 @@ main = do
                   (hkc:cc:[]) -> (hkc,cc)
                   _           -> error "Usage: hkc-tests <HKC> <CC>"
 
-  tests   <- getTests
+  tests      <- getTests
   createDirectoryIfMissing False "build"
 
   putStrLn $ stars <> "TESTING HKC" <> stars
@@ -34,6 +47,13 @@ main = do
 
 getTests :: IO [FilePath]
 getTests = filter ((== ".hk") . takeExtension) <$> listDirectory "tests/hakaru"
+
+getHkTypedTerm :: FilePath -> IO (Maybe (TypedAST (TrivialABT Term)))
+getHkTypedTerm fp = do
+  prog  <- IO.readFile fp
+  case parseAndInfer prog of
+    Left err               -> IO.hPutStrLn stderr err >> return Nothing
+    Right term -> return (Just term)
 
 getStats :: [Maybe a] -> (Int,Int)
 getStats xs =
@@ -56,6 +76,10 @@ stars = "\n" <> replicate 80 '*' <> "\n"
 --                                 TESTS                                      --
 --------------------------------------------------------------------------------
 
+{-
+Take in a Hakaru source file and produce a C file. Encountered errors here are
+incomplete implementations of Hakaru programs in HKC
+-}
 hakaruToC :: String -> FilePath -> IO (Maybe FilePath)
 hakaruToC hkc fp =
   let fp' = "build" </> "sea" </> (takeBaseName fp) <.> "c"
@@ -75,7 +99,10 @@ hakaruToC hkc fp =
                  appendFile "build/hkc.log" (stars <> fp <>":\n\n" <> err)
                  return Nothing
 
--- Check to see if it produces legal C code
+{-
+Take the C code produced by HKC and compile to an executable using some C compiler.
+Encountered here could be missing libraries and bad code generation.  
+-}
 cToBinary :: String -> FilePath -> IO (Maybe FilePath)
 cToBinary cc fp =
   let fp' = "build" </> "bin" </> (takeBaseName fp)
@@ -93,7 +120,16 @@ cToBinary cc fp =
                  appendFile "build/cc.log" (stars <> fp <>":\n\n" <> err)
                  return Nothing
 
--- we will want the type of the program for testing output
+{-
+This is a more complicated then the other two tests. It needs to see if there is
+an input file in the `tests/input` directory, parse the input file, and feed its
+contents to the executable.
+
+If the program is a measure it will draw 10 samples with a `-n10` flag to the
+executable.
+
+Possible errors here
+-}
 binaryToOutput :: FilePath -> IO (Maybe FilePath)
 binaryToOutput fp =
   let fp' = "build" </> "output" </> fp </> "out"
@@ -109,3 +145,11 @@ binaryToOutput fp =
                  err <- hGetContents errH
                  appendFile "build/output.log" (stars <> fp <>":\n\n" <> err)
                  return Nothing
+
+{-
+Takes the output of a run HKC generated program and tests it against the output
+in `tests/output`. Problems here could be that there is no standardized output
+or floating point errors.
+-}  
+checkOutput :: FilePath -> IO (Maybe Bool)
+checkOutput = undefined
