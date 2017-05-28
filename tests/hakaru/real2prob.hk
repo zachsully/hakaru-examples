@@ -1,0 +1,2 @@
+fn x real:
+  real2prob(-x)

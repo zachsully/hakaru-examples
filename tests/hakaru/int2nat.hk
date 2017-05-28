@@ -1,0 +1,2 @@
+fn x int:
+  int2nat(-x)
