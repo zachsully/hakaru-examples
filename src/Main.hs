@@ -27,13 +27,16 @@ instance Show Test where
 testName :: Test -> String
 testName (Test name) = name
 
-testFP,inputFP,correctOutputFP,outputFP,seaFP,binFP :: Test -> FilePath
-testFP          (Test name) = "tests" </> "hakaru" </> name <.> "hk"
-inputFP         (Test name) = "tests" </> "input"  </> name <.> "in"
-correctOutputFP (Test name) = "tests" </> "output" </> name <.> "out"
-outputFP        (Test name) = "build" </> "output" </> name <.> "out"
-seaFP           (Test name) = "build" </> "sea"    </> name <.> "c"
-binFP           (Test name) = "build" </> "bin"    </> name <.> "bin"
+testFP,inputFP,correctOutputFP,outputFP,seaFP,binFP,hsFP,hsBinFP
+  :: Test -> FilePath
+testFP          (Test name) = "tests" </> "hakaru"  </> name <.> "hk"
+inputFP         (Test name) = "tests" </> "input"   </> name <.> "in"
+correctOutputFP (Test name) = "tests" </> "output"  </> name <.> "out"
+outputFP        (Test name) = "build" </> "output"  </> name <.> "out"
+seaFP           (Test name) = "build" </> "sea"     </> name <.> "c"
+binFP           (Test name) = "build" </> "bin"     </> name <.> "c" <.> "bin"
+hsFP            (Test name) = "build" </> "haskell" </> name <.> "hs"
+hsBinFP         (Test name) = "build" </> "bin"     </> name <.> "hs" <.> "bin"
 
 
 main :: IO ()
@@ -46,15 +49,23 @@ main = do
   tests      <- getTests
   createDirectoryIfMissing False "build"
 
-  putStrLn $ stars <> "TESTING HKC" <> stars
+  putStrLn $ stars <> "COMPILE" <> stars
+  testsHs <- mapM (hakaruToHs "compile") tests
+
+  putStrLn $ stars <> "GHC" <> stars
+  testsHs' <- mapM (hsToBinary "ghc") testsHs
+
+  putStrLn $ stars <> "HKC" <> stars
   tests' <- mapM (hakaruToC hkc) tests
 
-  putStrLn $ stars <> "TESTING CC" <> stars
+  putStrLn $ stars <> "CC" <> stars
   tests'' <- mapM (cToBinary cc . fst) . filter snd $ tests'
 
   -- putStrLn $ stars <> "TESTING OUTPUT" <> stars
   -- tests''' <- mapM (binaryToOutput . fromJust) . filter isJust $ tests''
 
+  reportStats "Compile Tests" testsHs
+  reportStats "Haskell Tests" testsHs'
   reportStats "HKC Tests" tests'
   reportStats "CC Tests" tests''
   -- reportStats "Output Tests" tests'''
@@ -110,6 +121,39 @@ hakaruToC hkc test =
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
                  appendFile "build/hkc.log" (stars <> testFP test <>":\n\n" <> err)
+                 return (test,False)
+
+{-
+Take in a Hakaru source file and produce a Haskell file
+-}
+hakaruToHs :: String -> Test -> IO (Test,Bool)
+hakaruToHs compile test =
+  let process = proc compile [testFP test,"-o", hsFP test]
+  in
+    do createDirectoryIfMissing False ("build" </> "haskell")
+       putStrLn $ "compile: ( " <> testFP test <> " , " <> hsFP test <> " )"
+       (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
+       exitcode <- waitForProcess pH
+       case exitcode of
+         ExitSuccess -> return (test,True)
+         _ -> do putStrLn "FAILED"
+                 err <- hGetContents errH
+                 appendFile "build/hkhs.log" (stars <> testFP test <>":\n\n" <> err)
+                 return (test,False)
+
+hsToBinary :: String -> Test -> IO (Test,Bool)
+hsToBinary ghc test =
+  let process = proc ghc ["-O2",hsFP test,"-o", hsBinFP test]
+  in
+    do createDirectoryIfMissing False ("build" </> "haskell")
+       putStrLn $ "compile: ( " <> testFP test <> " , " <> hsFP test <> " )"
+       (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
+       exitcode <- waitForProcess pH
+       case exitcode of
+         ExitSuccess -> return (test,True)
+         _ -> do putStrLn "FAILED"
+                 err <- hGetContents errH
+                 appendFile "build/hs.log" (stars <> testFP test <>":\n\n" <> err)
                  return (test,False)
 
 {-
