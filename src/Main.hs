@@ -12,6 +12,7 @@ import Language.Hakaru.Syntax.ABT
 import Language.Hakaru.Syntax.AST
 import Language.Hakaru.Syntax.TypeCheck
 
+import Options.Applicative
 import System.IO
 import System.Process
 import System.Exit
@@ -19,6 +20,28 @@ import System.Directory
 import System.FilePath.Posix
 import System.Environment
 
+--------------------------------------------------------------------------------
+--                             Executable Options                             --
+--------------------------------------------------------------------------------
+data Mode = Haskell | C
+  deriving (Show,Eq)
+
+parseMode :: Parser Mode
+parseMode = subparser
+  $  (command "haskell" (info (helper <*> pure Haskell)
+                            (progDesc "test Haskell code generators")))
+  <> (command "c" (info (helper <*> pure C)
+                        (progDesc "test C code generators")))
+
+parseOpts :: IO Mode
+parseOpts = execParser
+          $ info (helper <*> parseMode)
+          $ fullDesc <> progDesc "hkc-test: test Hakaru backends"
+
+
+--------------------------------------------------------------------------------
+--                              Test FilePaths                                --
+--------------------------------------------------------------------------------
 newtype Test = Test String
 
 instance Show Test where
@@ -39,36 +62,36 @@ hsFP            (Test name) = "build" </> "haskell" </> name <.> "hs"
 hsBinFP         (Test name) = "build" </> "bin"     </> name <.> "hs" <.> "bin"
 
 
+--------------------------------------------------------------------------------
+--                                   MAIN                                     --
+--------------------------------------------------------------------------------
 main :: IO ()
 main = do
-  args <- getArgs
-  let (hkc,cc) = case args of
-                  (hkc:cc:[]) -> (hkc,cc)
-                  _           -> error "Usage: hkc-tests <HKC> <CC>"
+  mode <- parseOpts
+  let (hkc,cc) = ("hkc","gcc")
 
-  tests      <- getTests
+  tests <- getTests
   createDirectoryIfMissing False "build"
 
-  putStrLn $ stars <> "COMPILE" <> stars
-  testsHs <- mapM (hakaruToHs "compile") tests
+  case mode of
+    Haskell -> do putStrLn $ stars <> center "COMPILE" <> stars
+                  tests' <- mapM (hakaruToHs "compile") tests
 
-  putStrLn $ stars <> "GHC" <> stars
-  testsHs' <- mapM (hsToBinary "ghc") testsHs
+                  putStrLn $ stars <> center "GHC" <> stars
+                  tests'' <- mapM (hsToBinary "ghc" . fst) . filter snd $ tests'
 
-  putStrLn $ stars <> "HKC" <> stars
-  tests' <- mapM (hakaruToC hkc) tests
+                  reportStats "Compile Tests" tests'
+                  reportStats "Haskell Tests" tests''
 
-  putStrLn $ stars <> "CC" <> stars
-  tests'' <- mapM (cToBinary cc . fst) . filter snd $ tests'
+    C       -> do putStrLn $ stars <> center "HKC" <> stars
+                  tests' <- mapM (hakaruToC hkc) tests
 
-  -- putStrLn $ stars <> "TESTING OUTPUT" <> stars
-  -- tests''' <- mapM (binaryToOutput . fromJust) . filter isJust $ tests''
+                  putStrLn $ stars <> center "CC" <> stars
+                  tests'' <- mapM (cToBinary cc . fst) . filter snd $ tests'
 
-  reportStats "Compile Tests" testsHs
-  reportStats "Haskell Tests" testsHs'
-  reportStats "HKC Tests" tests'
-  reportStats "CC Tests" tests''
-  -- reportStats "Output Tests" tests'''
+                  reportStats "HKC Tests" tests'
+                  reportStats "CC Tests" tests''
+
   putStrLn "Fin."
 
 getTests :: IO [Test]
@@ -99,6 +122,13 @@ reportStats test xs =
 
 stars :: String
 stars = "\n" <> replicate 80 '*' <> "\n"
+
+center :: String -> String
+center s = mconcat ["*",replicate spaceLeft ' ',s,replicate spaceRight ' ',"*"]
+  where len = length s
+        spaceLeft = (80 - (len + 2)) `div` 2
+        spaceRight = let (d,m) = (80 - (len + 2)) `divMod` 2
+                     in d + m
 
 --------------------------------------------------------------------------------
 --                                 TESTS                                      --
@@ -131,29 +161,35 @@ hakaruToHs compile test =
   let process = proc compile [testFP test,"-o", hsFP test]
   in
     do createDirectoryIfMissing False ("build" </> "haskell")
-       putStrLn $ "compile: ( " <> testFP test <> " , " <> hsFP test <> " )"
-       (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
+       putStrLn $ "hkhs: ( " <> testFP test <> " , " <> hsFP test <> " )"
+       (_,Just outH,Just errH,pH) <- createProcess process { std_out = CreatePipe
+                                                           , std_err = CreatePipe }
        exitcode <- waitForProcess pH
        case exitcode of
          ExitSuccess -> return (test,True)
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "build/hkhs.log" (stars <> testFP test <>":\n\n" <> err)
+                 out <- hGetContents outH
+                 appendFile "build/hkhs.log"
+                   (stars <> testFP test <>":\n\n" <> out <> err)
                  return (test,False)
 
 hsToBinary :: String -> Test -> IO (Test,Bool)
 hsToBinary ghc test =
   let process = proc ghc ["-O2",hsFP test,"-o", hsBinFP test]
   in
-    do createDirectoryIfMissing False ("build" </> "haskell")
-       putStrLn $ "compile: ( " <> testFP test <> " , " <> hsFP test <> " )"
-       (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
+    do createDirectoryIfMissing False ("build" </> "bin")
+       putStrLn $ "hc: ( " <> testFP test <> " , " <> hsFP test <> " )"
+       (_,Just outH,Just errH,pH) <- createProcess process { std_out = CreatePipe
+                                                           , std_err = CreatePipe }
        exitcode <- waitForProcess pH
        case exitcode of
          ExitSuccess -> return (test,True)
          _ -> do putStrLn "FAILED"
                  err <- hGetContents errH
-                 appendFile "build/hs.log" (stars <> testFP test <>":\n\n" <> err)
+                 out <- hGetContents outH
+                 appendFile "build/hs.log"
+                   (stars <> testFP test <>":\n\n" <> out <> err)
                  return (test,False)
 
 {-
