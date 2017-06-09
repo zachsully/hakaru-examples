@@ -1,0 +1,2 @@
+fn x nat:
+  nat2prob(x)

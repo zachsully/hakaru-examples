@@ -1,0 +1,16 @@
+fn topic_prior array(prob):
+fn word_prior array(prob):
+fn z array(nat):
+fn w array(nat):
+fn doc array(nat):
+fn docUpdate nat:
+array zNew丏 of size(topic_prior):
+  (nat2prob((summate i丣严 from 0 to size(z):
+               (match (i丣严 == docUpdate):
+                 true: 0
+                 false:
+                  (match (z[i丣严] < 0):
+                    true: 0
+                    false: 1))))
+     +
+    (summate i丣严 from 0 to size(topic_prior): topic_prior[i丣严]))
