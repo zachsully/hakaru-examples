@@ -1,0 +1,4 @@
+fn a array(prob):
+  summate i from 0 to size(a):
+    product j from 0 to size(a):
+      a[i]

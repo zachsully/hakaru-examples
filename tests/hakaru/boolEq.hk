@@ -1,1 +1,3 @@
-true == false
+match (true == false):
+  true:  1
+  false: 0

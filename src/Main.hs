@@ -50,12 +50,15 @@ instance Show Test where
 testName :: Test -> String
 testName (Test name) = name
 
-testFP,inputFP,correctOutputFP,outputFP,seaFP,binFP,hsFP,hsBinFP
+testFP,inputFP,correctOutputFP,outputFP,outputHsFP,seaFP,binFP,hsFP,hsBinFP
   :: Test -> FilePath
+-- Handwritten tests
 testFP          (Test name) = "tests" </> "hakaru"  </> name <.> "hk"
 inputFP         (Test name) = "tests" </> "input"   </> name <.> "in"
 correctOutputFP (Test name) = "tests" </> "output"  </> name <.> "out"
-outputFP        (Test name) = "build" </> "output"  </> name <.> "out"
+-- Built Programs
+outputFP        (Test name) = "build" </> "output"  </> name <.> "c" <.> "out"
+outputHsFP      (Test name) = "build" </> "output"  </> name <.> "hs" <.> "out"
 seaFP           (Test name) = "build" </> "sea"     </> name <.> "c"
 binFP           (Test name) = "build" </> "bin"     </> name <.> "c" <.> "bin"
 hsFP            (Test name) = "build" </> "haskell" </> name <.> "hs"
@@ -89,8 +92,12 @@ main = do
                   putStrLn $ stars <> center "CC" <> stars
                   tests'' <- mapM (cToBinary cc . fst) . filter snd $ tests'
 
+                  -- putStrLn $ stars <> center "C OUTPUT" <> stars
+                  -- tests''' <- mapM (binaryToOutput . fst) . filter snd $ tests''
+
                   reportStats "HKC Tests" tests'
                   reportStats "CC Tests" tests''
+                  -- reportStats "C OUTPUT" tests'''
 
   putStrLn "Fin."
 
@@ -179,7 +186,7 @@ hsToBinary ghc test =
   let process = proc ghc ["-O2",hsFP test,"-o", hsBinFP test]
   in
     do createDirectoryIfMissing False ("build" </> "bin")
-       putStrLn $ "hc: ( " <> testFP test <> " , " <> hsFP test <> " )"
+       putStrLn $ "hc: ( " <> hsFP test <> " , " <> hsBinFP test <> " )"
        (_,Just outH,Just errH,pH) <- createProcess process { std_out = CreatePipe
                                                            , std_err = CreatePipe }
        exitcode <- waitForProcess pH
@@ -225,6 +232,7 @@ Possible errors here
 binaryToOutput :: Test -> IO (Test,Bool)
 binaryToOutput test =
   let process = proc (binFP test) [">",outputFP test]
+      headP   = proc "head" ["-n1"]
   in
     do createDirectoryIfMissing False ("build" </> "output")
        putStrLn $ "output: ( " <> binFP test <> " , " <> outputFP test <> " )"
@@ -242,5 +250,5 @@ Takes the output of a run HKC generated program and tests it against the output
 in `tests/output`. Problems here could be that there is no standardized output
 or floating point errors.
 -}
-checkOutput :: Test -> IO (Maybe Bool)
+checkOutput :: Test -> IO (Test,Bool)
 checkOutput = undefined

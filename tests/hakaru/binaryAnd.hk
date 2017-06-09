@@ -1,1 +1,3 @@
-true && true
+match (true && true):
+  true:  1
+  false: 0
