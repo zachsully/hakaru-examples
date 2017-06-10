@@ -23,15 +23,21 @@ import System.Environment
 --------------------------------------------------------------------------------
 --                             Executable Options                             --
 --------------------------------------------------------------------------------
-data Mode = Haskell | C
+data Mode
+  = Haskell [String]
+  | Sea     [String]
   deriving (Show,Eq)
+
+parseSea :: Parser Mode
+parseSea = Sea
+       <$> (many (strArgument (metavar "FLAG" <> help "an HKC flag to build with")))
 
 parseMode :: Parser Mode
 parseMode = subparser
-  $  (command "haskell" (info (helper <*> pure Haskell)
+  $  (command "haskell" (info (helper <*> pure (Haskell []))
                             (progDesc "test Haskell code generators")))
-  <> (command "c" (info (helper <*> pure C)
-                        (progDesc "test C code generators")))
+  <> (command "sea" (info (helper <*> parseSea)
+                          (progDesc "test pedantic C code generators")))
 
 parseOpts :: IO Mode
 parseOpts = execParser
@@ -77,27 +83,27 @@ main = do
   createDirectoryIfMissing False "build"
 
   case mode of
-    Haskell -> do putStrLn $ stars <> center "COMPILE" <> stars
-                  tests' <- mapM (hakaruToHs "compile") tests
+    Haskell _ -> do putStrLn $ stars <> center "COMPILE" <> stars
+                    tests' <- mapM (hakaruToHs "compile") tests
 
-                  putStrLn $ stars <> center "GHC" <> stars
-                  tests'' <- mapM (hsToBinary "ghc" . fst) . filter snd $ tests'
+                    putStrLn $ stars <> center "GHC" <> stars
+                    tests'' <- mapM (hsToBinary "ghc" . fst) . filter snd $ tests'
 
-                  reportStats "Compile Tests" tests'
-                  reportStats "Haskell Tests" tests''
+                    reportStats "Compile Tests" tests'
+                    reportStats "Haskell Tests" tests''
 
-    C       -> do putStrLn $ stars <> center "HKC" <> stars
-                  tests' <- mapM (hakaruToC hkc) tests
+    Sea flgs  -> do putStrLn $ stars <> center "HKC" <> stars
+                    tests' <- mapM (hakaruToC hkc flgs) tests
 
-                  putStrLn $ stars <> center "CC" <> stars
-                  tests'' <- mapM (cToBinary cc . fst) . filter snd $ tests'
+                    putStrLn $ stars <> center "CC" <> stars
+                    tests'' <- mapM (cToBinary cc . fst) . filter snd $ tests'
 
-                  -- putStrLn $ stars <> center "C OUTPUT" <> stars
-                  -- tests''' <- mapM (binaryToOutput . fst) . filter snd $ tests''
+                    -- putStrLn $ stars <> center "C OUTPUT" <> stars
+                    -- tests''' <- mapM (binaryToOutput . fst) . filter snd $ tests''
 
-                  reportStats "HKC Tests" tests'
-                  reportStats "CC Tests" tests''
-                  -- reportStats "C OUTPUT" tests'''
+                    reportStats "HKC Tests" tests'
+                    reportStats "CC Tests" tests''
+                    -- reportStats "C OUTPUT" tests'''
 
   putStrLn "Fin."
 
@@ -145,9 +151,9 @@ center s = mconcat ["*",replicate spaceLeft ' ',s,replicate spaceRight ' ',"*"]
 Take in a Hakaru source file and produce a C file. Encountered errors here are
 incomplete implementations of Hakaru programs in HKC
 -}
-hakaruToC :: String -> Test -> IO (Test,Bool)
-hakaruToC hkc test =
-  let process = proc hkc ["-g",testFP test,"-o",seaFP test]
+hakaruToC :: String -> [String] -> Test -> IO (Test,Bool)
+hakaruToC hkc flgs test =
+  let process = proc hkc $ fmap ("-"++) flgs ++ ["-w","-g",testFP test,"-o",seaFP test]
   in
     do createDirectoryIfMissing False ("build" </> "sea")
        putStrLn $ "hkc: ( " <> testFP test <> " , " <> seaFP test <> " )"
@@ -165,7 +171,8 @@ Take in a Hakaru source file and produce a Haskell file
 -}
 hakaruToHs :: String -> Test -> IO (Test,Bool)
 hakaruToHs compile test =
-  let process = proc compile [testFP test,"-o", hsFP test]
+  let process = proc compile ["--logfloat-prelude"
+                             ,testFP test,"-o", hsFP test]
   in
     do createDirectoryIfMissing False ("build" </> "haskell")
        putStrLn $ "hkhs: ( " <> testFP test <> " , " <> hsFP test <> " )"
