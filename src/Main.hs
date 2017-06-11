@@ -48,27 +48,30 @@ parseOpts = execParser
 --------------------------------------------------------------------------------
 --                              Test FilePaths                                --
 --------------------------------------------------------------------------------
-newtype Test = Test String
+-- test program is a string for the program and a list of strings for the
+-- options
+data Test = Test String [String]
 
 instance Show Test where
-  show (Test name) = "Test: " <> show name
+  show (Test name flgs) = "Test: " <> show name <> showFlags flgs
 
-testName :: Test -> String
-testName (Test name) = name
+showFlags = mconcat
+nameWithFlags (Test name []) = name
+nameWithFlags (Test name flgs) = name <.> showFlags flgs
 
 testFP,inputFP,correctOutputFP,outputFP,outputHsFP,seaFP,binFP,hsFP,hsBinFP
   :: Test -> FilePath
 -- Handwritten tests
-testFP          (Test name) = "tests" </> "hakaru"  </> name <.> "hk"
-inputFP         (Test name) = "tests" </> "input"   </> name <.> "in"
-correctOutputFP (Test name) = "tests" </> "output"  </> name <.> "out"
--- Built Programs
-outputFP        (Test name) = "build" </> "output"  </> name <.> "c" <.> "out"
-outputHsFP      (Test name) = "build" </> "output"  </> name <.> "hs" <.> "out"
-seaFP           (Test name) = "build" </> "sea"     </> name <.> "c"
-binFP           (Test name) = "build" </> "bin"     </> name <.> "c" <.> "bin"
-hsFP            (Test name) = "build" </> "haskell" </> name <.> "hs"
-hsBinFP         (Test name) = "build" </> "bin"     </> name <.> "hs" <.> "bin"
+testFP          (Test name _) = "tests" </> "hakaru"  </> name <.> "hk"
+inputFP         (Test name _) = "tests" </> "input"   </> name <.> "in"
+correctOutputFP (Test name _) = "tests" </> "output"  </> name <.> "out"
+-- Built Programs, flags are appended to file tipe
+outputFP   t = "build" </> "output"  </> nameWithFlags t <.> "c" <.> "out"
+outputHsFP t = "build" </> "output"  </> nameWithFlags t <.> "hs" <.> "out"
+seaFP      t = "build" </> "sea"     </> nameWithFlags t <.> "c"
+binFP      t = "build" </> "bin"     </> nameWithFlags t <.> "c" <.> "bin"
+hsFP       t = "build" </> "haskell" </> nameWithFlags t <.> "hs"
+hsBinFP    t = "build" </> "bin"     </> nameWithFlags t <.> "hs" <.> "bin"
 
 
 --------------------------------------------------------------------------------
@@ -78,12 +81,11 @@ main :: IO ()
 main = do
   mode <- parseOpts
   let (hkc,cc) = ("hkc","gcc")
-
-  tests <- getTests
   createDirectoryIfMissing False "build"
 
   case mode of
-    Haskell _ -> do putStrLn $ stars <> center "COMPILE" <> stars
+    Haskell _ -> do tests <- getTests []
+                    putStrLn $ stars <> center "COMPILE" <> stars
                     tests' <- mapM (hakaruToHs "compile") tests
 
                     putStrLn $ stars <> center "GHC" <> stars
@@ -92,7 +94,8 @@ main = do
                     reportStats "Compile Tests" tests'
                     reportStats "Haskell Tests" tests''
 
-    Sea flgs  -> do putStrLn $ stars <> center "HKC" <> stars
+    Sea flgs  -> do tests <- getTests flgs
+                    putStrLn $ stars <> center "HKC" <> stars
                     tests' <- mapM (hakaruToC hkc flgs) tests
 
                     putStrLn $ stars <> center "CC" <> stars
@@ -107,10 +110,10 @@ main = do
 
   putStrLn "Fin."
 
-getTests :: IO [Test]
-getTests = do
+getTests :: [String] -> IO [Test]
+getTests flgs = do
    files <- listDirectory ("tests" </> "hakaru")
-   return . fmap (Test . takeBaseName) . filter ((== ".hk") . takeExtension) $ files
+   return . fmap (\t -> Test (takeBaseName t) flgs) . filter ((== ".hk") . takeExtension) $ files
 
 getHkTypedTerm :: FilePath -> IO (Maybe (TypedAST (TrivialABT Term)))
 getHkTypedTerm fp = do
