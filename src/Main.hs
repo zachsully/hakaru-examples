@@ -24,9 +24,13 @@ import System.Environment
 --                             Executable Options                             --
 --------------------------------------------------------------------------------
 data Mode
-  = Haskell [String]
+  = Haskell Bool
   | Sea     [String]
   deriving (Show,Eq)
+
+parseHaskell :: Parser Mode
+parseHaskell = Haskell
+           <$> switch (short 'S' <> help "use summary optimization")
 
 parseSea :: Parser Mode
 parseSea = Sea
@@ -34,7 +38,7 @@ parseSea = Sea
 
 parseMode :: Parser Mode
 parseMode = subparser
-  $  (command "haskell" (info (helper <*> pure (Haskell []))
+  $  (command "haskell" (info (helper <*> parseHaskell)
                             (progDesc "test Haskell code generators")))
   <> (command "sea" (info (helper <*> parseSea)
                           (progDesc "test pedantic C code generators")))
@@ -84,9 +88,11 @@ main = do
   createDirectoryIfMissing False "build"
 
   case mode of
-    Haskell _ -> do tests <- getTests []
+    Haskell s -> do tests <- getTests (if s then ["S"] else [])
                     putStrLn $ stars <> center "COMPILE" <> stars
-                    tests' <- mapM (hakaruToHs "compile") tests
+                    tests' <- mapM (hakaruToHs (if s
+                                                then "summary"
+                                                else "compile")) tests
 
                     putStrLn $ stars <> center "GHC" <> stars
                     tests'' <- mapM (hsToBinary "ghc" . fst) . filter snd $ tests'
@@ -95,11 +101,12 @@ main = do
                     reportStats "Haskell Tests" tests''
 
     Sea flgs  -> do tests <- getTests flgs
+                    let isPar = elem "f" flgs
                     putStrLn $ stars <> center "HKC" <> stars
                     tests' <- mapM (hakaruToC hkc flgs) tests
 
                     putStrLn $ stars <> center "CC" <> stars
-                    tests'' <- mapM (cToBinary cc . fst) . filter snd $ tests'
+                    tests'' <- mapM (cToBinary cc isPar . fst) . filter snd $ tests'
 
                     -- putStrLn $ stars <> center "C OUTPUT" <> stars
                     -- tests''' <- mapM (binaryToOutput . fst) . filter snd $ tests''
@@ -213,10 +220,11 @@ hsToBinary ghc test =
 Take the C code produced by HKC and compile to an executable using some C compiler.
 Encountered here could be missing libraries and bad code generation.
 -}
-cToBinary :: String -> Test -> IO (Test,Bool)
-cToBinary cc test =
-  let process = proc cc ["-O3","-march=native","-lm","-lgc","-std=c99","-pedantic"
-                        ,seaFP test,"-o",binFP test]
+cToBinary :: String -> Bool -> Test -> IO (Test,Bool)
+cToBinary cc isPar test =
+  let process = proc cc $  (if isPar then ["-fopenmp"] else [] )
+                        <> [ "-O3","-march=native","-lm","-lgc","-std=c99"
+                           , "-pedantic", seaFP test,"-o",binFP test ]
   in
     do createDirectoryIfMissing False ("build" </> "bin")
        putStrLn $ "cc: ( " <> seaFP test <> " , " <> binFP test <> " )"
