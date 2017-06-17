@@ -1,5 +1,6 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds,
+             FlexibleContexts,
+             TypeOperators #-}
 
 module Main where
 
@@ -24,7 +25,7 @@ import qualified Data.Text.IO as IO
 main :: IO ()
 main = do
   compileHakaru bucketAdd "bucketAdd.c"
-  -- compileHakaru bucketNoOp "bucketNoOp.c"
+  compileHakaru bucketNoOp "bucketNoOp.c"
   compileHakaru bucketFanout "bucketFanout.c"
   compileHakaru bucketFanout2 "bucketFanout2.c"
   compileHakaru bucketFanout3 "bucketFanout3.c"
@@ -33,49 +34,52 @@ main = do
   compileHakaru bucketIndex "bucketIndex.c"
   compileHakaru bucketIndex2 "bucketIndex2.c"
 
-bucketAdd :: TrivialABT Term '[] 'HNat
-bucketAdd = triv $ bucket (nat_ 0) (nat_ 10) (r_add (const (nat_ 1)))
+bucketAdd :: TrivialABT Term '[] ('HNat ':-> 'HNat)
+bucketAdd = triv $
+  lam $ \x -> bucket (nat_ 0) x (r_add (const (nat_ 1)))
 
-bucketNoOp :: TrivialABT Term '[] HUnit
-bucketNoOp = triv $ bucket (nat_ 0) (nat_ 10) r_nop
+bucketNoOp :: TrivialABT Term '[] ('HNat ':-> HUnit)
+bucketNoOp = triv $
+  lam $ \x -> bucket (nat_ 0) x r_nop
 
-bucketFanout :: TrivialABT Term '[] (HPair 'HNat 'HNat)
-bucketFanout = triv $ bucket (nat_ 0) (nat_ 10)
+bucketFanout :: TrivialABT Term '[] ('HNat ':-> (HPair 'HNat 'HNat))
+bucketFanout = triv $
+  lam $ \x -> bucket (nat_ 0) x
   (r_fanout (r_add (const (nat_ 1)))
             (r_add (const (nat_ 2))))
 
-bucketFanout2 :: TrivialABT Term '[] (HPair 'HNat (HPair 'HNat 'HNat))
-bucketFanout2 = triv $ bucket (nat_ 0) (nat_ 10)
+bucketFanout2 :: TrivialABT Term '[] ('HNat ':-> (HPair 'HNat (HPair 'HNat 'HNat)))
+bucketFanout2 = triv $ lam $ \x -> bucket (nat_ 0) x
   (r_fanout (r_add (const (nat_ 1)))
             (r_fanout (r_add (const (nat_ 2)))
                       (r_add (const (nat_ 3)))))
 
-bucketFanout3 :: TrivialABT Term '[] (HPair 'HNat HUnit)
-bucketFanout3 = triv $ bucket (nat_ 0) (nat_ 10)
+bucketFanout3 :: TrivialABT Term '[] ('HNat ':-> (HPair 'HNat HUnit))
+bucketFanout3 = triv $ lam $ \x -> bucket (nat_ 0) x
   (r_fanout (r_add (const (nat_ 1)))
             r_nop)
 
-bucketFanout4 :: TrivialABT Term '[] (HPair (HPair 'HNat 'HNat) 'HNat)
-bucketFanout4 = triv $ bucket (nat_ 0) (nat_ 10)
+bucketFanout4 :: TrivialABT Term '[] ('HNat ':-> (HPair (HPair 'HNat 'HNat) 'HNat))
+bucketFanout4 = triv $ lam $ \x -> bucket (nat_ 0) x
   (r_fanout (r_fanout (r_add (const (nat_ 2)))
                       (r_add (const (nat_ 3))))
             (r_add (const (nat_ 1))))
 
 
-bucketSplit :: TrivialABT Term '[] (HPair 'HNat 'HNat)
-bucketSplit = triv $ bucket (nat_ 0) (nat_ 10)
+bucketSplit :: TrivialABT Term '[] ('HNat ':-> (HPair 'HNat 'HNat))
+bucketSplit = triv $ lam $ \x -> bucket (nat_ 0) x
   (r_split (const true)
            (r_add (const (nat_ 1)))
            (r_add (const (nat_ 2))))
 
-bucketIndex :: TrivialABT Term '[] ('HArray 'HNat)
-bucketIndex = triv $ bucket (nat_ 0) (nat_ 10)
+bucketIndex :: TrivialABT Term '[] ('HNat ':-> ('HArray 'HNat))
+bucketIndex = triv $ lam $ \x -> bucket (nat_ 0) x
   (r_index (const (nat_ 10))
            (const (nat_ 5))
            (r_add (const (nat_ 42))))
 
-bucketIndex2 :: TrivialABT Term '[] ('HArray (HPair 'HNat 'HNat))
-bucketIndex2 = triv $ bucket (nat_ 0) (nat_ 10)
+bucketIndex2 :: TrivialABT Term '[] ('HNat ':-> ('HArray (HPair 'HNat 'HNat)))
+bucketIndex2 = triv $ lam $ \x -> bucket (nat_ 0) x
   (r_index (const (nat_ 10))
            (const (nat_ 5))
            (r_fanout (r_add (const (nat_ 1)))
@@ -89,11 +93,11 @@ compileHakaru
 compileHakaru abt outFile = do
   let ast' = TypedAST (typeOf abt) $ foldr id abt abtPasses
       codeGen = wrapProgram ast' Nothing (PrintConfig True True)
-      codeGenConfig = emptyCG
+      codeGenConfig = emptyCG { sharedMem = True }
       cast = CAST $ runCodeGenWith codeGen codeGenConfig
       output  = pack . render . pretty $ cast
   IO.writeFile outFile output
   where abtPasses = [ expandTransformations
                     , constantPropagation
-                    -- , optimizations
+                    , optimizations
                     ]
