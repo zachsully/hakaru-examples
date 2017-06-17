@@ -101,7 +101,7 @@ main = do
                     reportStats "Haskell Tests" tests''
 
     Sea flgs  -> do tests <- getTests flgs
-                    let isPar = elem "f" flgs
+                    let isPar = elem "j" flgs
                     putStrLn $ stars <> center "HKC" <> stars
                     tests' <- mapM (hakaruToC hkc flgs) tests
 
