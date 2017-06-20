@@ -163,7 +163,7 @@ incomplete implementations of Hakaru programs in HKC
 -}
 hakaruToC :: String -> [String] -> Test -> IO (Test,Bool)
 hakaruToC hkc flgs test =
-  let process = proc hkc $ fmap ("-"++) flgs ++ ["-w","-g",testFP test,"-o",seaFP test]
+  let process = proc hkc $ fmap ("-"++) flgs ++ ["-w",testFP test,"-o",seaFP test]
   in
     do createDirectoryIfMissing False ("build" </> "sea")
        putStrLn $ "hkc: ( " <> testFP test <> " , " <> seaFP test <> " )"
