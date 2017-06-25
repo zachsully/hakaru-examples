@@ -224,17 +224,17 @@ cToBinary :: String -> Bool -> Test -> IO (Test,Bool)
 cToBinary cc isPar test =
   let process = proc cc $  (if isPar then ["-fopenmp"] else [] )
                         <> [ "-O3","-march=native","-lm","-lgc","-std=c99"
-                           , "-pedantic", seaFP test,"-o",binFP test ]
+                           , "-Wall", "-pedantic", seaFP test,"-o",binFP test ]
   in
     do createDirectoryIfMissing False ("build" </> "bin")
        putStrLn $ "cc: ( " <> seaFP test <> " , " <> binFP test <> " )"
        (_,_,Just errH,pH) <- createProcess process { std_err = CreatePipe }
        exitcode <- waitForProcess pH
+       err <- hGetContents errH
+       appendFile "build/cc.log" (stars <> seaFP test <>":\n\n" <> err)
        case exitcode of
          ExitSuccess -> return (test,True)
          _ -> do putStrLn "FAILED"
-                 err <- hGetContents errH
-                 appendFile "build/cc.log" (stars <> seaFP test <>":\n\n" <> err)
                  return (test,False)
 
 {-
