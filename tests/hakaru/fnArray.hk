@@ -1,0 +1,3 @@
+fn x nat:
+  array i of x:
+    i
