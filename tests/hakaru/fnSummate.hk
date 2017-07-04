@@ -1,0 +1,3 @@
+fn x nat:
+  summate i from 0 to x:
+    i + (product j from 1 to x: 1 ^ j)
